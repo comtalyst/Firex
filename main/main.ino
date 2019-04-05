@@ -1,4 +1,12 @@
-// Firex
+/*
+ * Maze traversing module
+ * 
+ */
+
+/* Known issues
+ * If the robot is still too far, but needed to turn around the corner --> the path would be too wide
+ * That caused from too far fixing is not fast enough
+ */
 
 #define MAX 9999
 
@@ -7,34 +15,72 @@ const int LEDPin = 13;
 char side = 'R';            // focusing side of wall following
 
 const float minFurther = 1;        // minimum distance difference between two sensors that would make the robot readjust itself
-const float minFar = 60;            // minimum distance from sensor that would be considered far
-const float minWalkable = 0;       // minimum distance needed in front of the bot for it to walk forward
+const float minTooFar = 20;
+const float maxTooClose = 5;
+const float minWalkable = 12;       // minimum distance needed in front of the bot for it to walk forward
+const int minTickToBeStraight = 6;
+const int roomEnterSteps = 10;
+const float doorWide = 50;
 
 int tick;
 int lastBalance;
+float lastSense = 15;               // last sensed distance to the l/r wall
+int lastFar = -MAX;               // last tick that detected far l/r wall
+int lastLineDetect = -MAX;
 
 void setup() {
   Serial.begin(9600);                     // Open the serial port
   delay(100);
   pinMode(LEDPin, OUTPUT);                // onboard LED
   readyServo();
-  readySonic();
-  // readyIR();
+  //readySonic();
+  //readyIRL();
+  //readyIR();
   blinkOK(3);                             // ok now
 }
 
 void loop() {
-  if(side == 'R'){      // TOMORROW --> MIMIC TO THE LEFT
+  /*robotStop(100);
+  forwardFast(200);*/
+  
+  if(side == 'R'){
     float rangeRightFront = getRangeRightFront();
     float rangeRightRear = getRangeRightRear();
-    // IF SIDE-FRONT SENSOR IS FAR OR SIDE-FRONT SENSOR IS SIGNIFICANTLY FURTHER THAN SIDE-REAR SENSOR
+    float rangeFrontLow = getRangeFrontLow();
+ 
+    // update last far
     if(isFar(rangeRightFront)){
+      lastFar = tick;
+    }
+    // if it's currently straight and not far --> update last sensed distance
+    else if(tick - lastFar >= minTickToBeStraight && !isFar(rangeRightFront) && hzPosBad(rangeRightFront) == 0){
+      lastSense = rangeRightFront;
+    }
+
+    // if bot detect the opened door
+    if(tick - lastLineDetect > roomEnterSteps*2 && detectLine()){
+      alignBot();
+      forwardFast(roomEnterSteps);
+      robotStop(20);                // tmp
+      // search for candle
+      right90(2);
+      lastBalance = tick;
+      lastFar = -MAX;
+      lastSense = doorWide - lastSense;
+      lastLineDetect = tick;
+    }
+    // IF SIDE-FRONT SENSOR IS FAR 
+    else if(isFar(rangeRightFront)){
+      // begin smooth 90 deg turn
       digitalWrite(LEDPin, HIGH);
-      rightSlightly(4);
+      rightSlightly(1);
+      forwardSlightly((int)(lastSense*(4.0/13.0)));       // steps : wall vs sensor (the more the broader)
       digitalWrite(LEDPin, LOW);
       lastBalance = tick;
+      lastFar = tick;
     }
-    else if(rangeRightFront - (isFar(rangeRightRear)? MAX:rangeRightRear) >= minFurther){
+    // IF TOO FAR OR SIDE-FRONT SENSOR IS SIGNIFICANTLY FURTHER THAN SIDE-REAR SENSOR
+    else if(hzPosBad(rangeRightFront) == 1 || rangeRightFront - (isFar(rangeRightRear)? MAX:rangeRightRear) >= minFurther){  // since this if()`, rangeRightFront is conditionally guaranteed not far
       // TURN RIGHT SLIGHTLY
       if(lastBalance == tick-1){
         rightSlightly(1);
@@ -51,8 +97,8 @@ void loop() {
       }
       lastBalance = tick;
     }
-    // IF SIDE-REAR SENSOR IS SIGNIFICANTLY FURTHER THAN SIDE-FRONT SENSOR
-    else if(rangeRightRear - rangeRightFront >= minFurther){
+    // IF TOO CLOSE OR SIDE-REAR SENSOR IS SIGNIFICANTLY FURTHER THAN SIDE-FRONT SENSOR
+    else if(hzPosBad(rangeRightFront) == -1 || rangeRightRear - rangeRightFront >= minFurther){       // rangeRightRear must not too far too (auto detect)
       // TURN LEFT SLIGHTLY
       if(lastBalance == tick-1){
         leftSlightly(1);
@@ -69,13 +115,13 @@ void loop() {
       }
       lastBalance = tick;
     }
-    else if(getRangeFrontLow() >= minWalkable){
+    else if(!isFarIR(rangeFrontLow) && rangeFrontLow >= minWalkable){
       // FORWARD SLIGHTLY
       forwardSlightly(1);
     }
     else{
-      // TURN RIGHT 90
-      right90(1);
+      // LET THE SENSOR FACE THE WALL
+      left90(1);
     }
   }
   else if(side == 'L'){
@@ -94,8 +140,8 @@ void loop() {
       forwardSlightly(1);
     }
     else{
-      // TURN LEFT 90
-      left90(1);
+      // LET THE SENSOR FACE THE WALL
+      right90(1);
     }
   }
   else{ // something's wrong
@@ -104,4 +150,16 @@ void loop() {
     while(true);
   }
   tick++;
+}
+
+int hzLoc(float range){
+  if(range <= maxTooClose){
+    return -1;
+  }
+  else if(range >= minTooFar){
+    return 1;
+  }
+  else{
+    return 0;
+  }
 }
