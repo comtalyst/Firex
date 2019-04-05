@@ -7,12 +7,11 @@ const int LEDPin = 13;
 char side = 'R';            // focusing side of wall following
 
 const float minFurther = 1;        // minimum distance difference between two sensors that would make the robot readjust itself
-const float minFar = 30;            // minimum distance from sensor that would be considered far
+const float minFar = 60;            // minimum distance from sensor that would be considered far
 const float minWalkable = 0;       // minimum distance needed in front of the bot for it to walk forward
 
 int tick;
 int lastBalance;
-int lastSense = 30;
 
 void setup() {
   Serial.begin(9600);                     // Open the serial port
@@ -28,13 +27,10 @@ void loop() {
   if(side == 'R'){      // TOMORROW --> MIMIC TO THE LEFT
     float rangeRightFront = getRangeRightFront();
     float rangeRightRear = getRangeRightRear();
-    if(!isFar(rangeRightFront)){
-      lastSense = rangeRightFront;
-    }
     // IF SIDE-FRONT SENSOR IS FAR OR SIDE-FRONT SENSOR IS SIGNIFICANTLY FURTHER THAN SIDE-REAR SENSOR
     if(isFar(rangeRightFront)){
       digitalWrite(LEDPin, HIGH);
-      right90Ex(lastSense);
+      rightSlightly(4);
       digitalWrite(LEDPin, LOW);
       lastBalance = tick;
     }
