@@ -9,17 +9,17 @@
 **          COPY EVERYTHING BELOW INTO YOUR MAIN SKETCH               **
 ************************************************************************
 
-  // GLOBALS
-  const int leftServoPin = 0;               // servo pin for LEFT wheel
-  const int rightServoPin = 1;              // servo pin for RIGHT wheel
-  const int LEDPin = 13;                    // the onboard LED pin (for diagnostics)
+// GLOBALS
+const int leftServoPin = 0;               // servo pin for LEFT wheel
+const int rightServoPin = 1;              // servo pin for RIGHT wheel
+const int LEDPin = 13;                    // the onboard LED pin (for diagnostics)
 
-  void setup() {
+void setup() {
   pinMode(leftServoPin, OUTPUT);
   pinMode(rightServoPin, OUTPUT);
   pinMode(LEDPin, OUTPUT);
   blinkOK(3);                // a diagnostic tool to let user know all is OK
-  }
+}
 
 
 ************************************************************************
@@ -28,11 +28,11 @@
 */
 
 /*
-  // a quick test of the servomotion module.  Of course, the loop function
-  // cannot be used by a module, so once the module is tested, delete the
-  // loop funciton!
+ // a quick test of the servomotion module.  Of course, the loop function 
+ // cannot be used by a module, so once the module is tested, delete the
+ // loop funciton!
 
-  void loop() {
+void loop() {
   // a silly test of some of the robot motion commands:
   forwardFast(200);
   robotStop(10);       // give the motors time to stop; prevents high current drain
@@ -42,7 +42,7 @@
   robotStop(10);
   leftFast(100);
   delay(2000);         // delay for 2 seconds, then do it again!
-  }
+}
 */
 
 
@@ -50,19 +50,19 @@ const int leftServoPin = 11;
 const int rightServoPin = 12;
 
 /*
-  // Left Servo Pulse Width Constants
-  const int left_forward_fast = 2000;       // CCW Fast
-  const int left_forward_slow = 1600;       // CCW Slow
-  const int left_stop = 1500;               // Center position
-  const int left_reverse_slow = 1400;       // CW Slow
-  const int left_reverse_fast = 1000;       // CW Fast
+// Left Servo Pulse Width Constants
+const int left_forward_fast = 2000;       // CCW Fast
+const int left_forward_slow = 1600;       // CCW Slow
+const int left_stop = 1500;               // Center position
+const int left_reverse_slow = 1400;       // CW Slow
+const int left_reverse_fast = 1000;       // CW Fast
 
-  // Right Servo Pulse Width Constants
-  const int right_forward_fast = 1200;      // CW Fast
-  const int right_forward_slow = 1400;      // CW Slow
-  const int right_stop = 1500;              // Center position
-  const int right_reverse_slow = 1600;      // CCW Slow
-  const int right_reverse_fast = 2000;      // CCW Fast
+// Right Servo Pulse Width Constants
+const int right_forward_fast = 1200;      // CW Fast 
+const int right_forward_slow = 1400;      // CW Slow
+const int right_stop = 1500;              // Center position
+const int right_reverse_slow = 1600;      // CCW Slow
+const int right_reverse_fast = 2000;      // CCW Fast
 */
 // Left Servo Pulse Width Constants
 const int left_forward_fast = 1350;       // CCW Fast
@@ -72,7 +72,7 @@ const int left_reverse_slow = 1600;       // CW Slow
 const int left_reverse_fast = 2000;       // CW Fast
 
 // Right Servo Pulse Width Constants
-const int right_forward_fast = 2000;      // CW Fast
+const int right_forward_fast = 2000;      // CW Fast 
 const int right_forward_slow = 1600;      // CW Slow
 const int right_stop = 1500;              // Center position
 const int right_reverse_slow = 1400;      // CCW Slow
@@ -189,7 +189,7 @@ void stopStep() {
 void forwardStepFast() {
   createPulse(leftServoPin, left_forward_fast);
   createPulse(rightServoPin, right_forward_fast);         // switch right to before left fix the early left of the new motor
-
+  
   delay(20);      // do NOT alter this delay time!
 }
 
@@ -256,36 +256,36 @@ const int forwardSteps = 1;      // steps taken per walk action
 const int right90Steps = 22;
 const int left90Steps = 22;
 
-const float stepsPerCm = 100.0 / 32.5;    // 100 steps is 32.5 cm
+const float stepsPerCm = 100.0/32.5;      // 100 steps is 32.5 cm
 const float firstSensorTailDistance = 15.0;
 
 bool firstForward = false;
 /*
-  Current issue in the new motor is that it explicitly turns left at the start of the first "long" forward
+Current issue in the new motor is that it explicitly turns left at the start of the first "long" forward
 */
 
-void readyServo() {
+void readyServo(){
   pinMode(leftServoPin, OUTPUT);
   pinMode(rightServoPin, OUTPUT);
 }
 
-void rightSlightly(int multiplier) {
-  rightSlow(turnSteps * multiplier);
+void rightSlightly(int multiplier){
+  rightSlow(turnSteps*multiplier);
 }
-void leftSlightly(int multiplier) {
-  leftSlow(turnSteps * multiplier);
+void leftSlightly(int multiplier){
+  leftSlow(turnSteps*multiplier);
 }
-void forwardSlightly(int multiplier) {
-  forwardFast(forwardSteps * multiplier);
+void forwardSlightly(int multiplier){
+  forwardFast(forwardSteps*multiplier);
 }
-void right90(int multiplier) {
-  rightFast(right90Steps * multiplier);
+void right90(int multiplier){
+  rightFast(right90Steps*multiplier);
 }
-void left90(int multiplier) {
-  leftFast(left90Steps * multiplier);
+void left90(int multiplier){
+  leftFast(left90Steps*multiplier);
 }
-void right90Ex(float lastSense) {
-  int moveSteps = (int)(firstSensorTailDistance * stepsPerCm + lastSense * stepsPerCm);
+void right90Ex(float lastSense){
+  int moveSteps = (int)(firstSensorTailDistance*stepsPerCm + lastSense*stepsPerCm);
   forwardFast(moveSteps);
   right90(1);
   forwardFast(moveSteps);

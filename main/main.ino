@@ -1,11 +1,12 @@
 /*
-   Maze traversing module
-*/
+ * Maze traversing module
+ * 
+ */
 
 /* Known issues
-   If the robot is still too far, but needed to turn around the corner --> the path would be too wide
-   That caused from too far fixing is not fast enough
-*/
+ * If the robot is still too far, but needed to turn around the corner --> the path would be too wide
+ * That caused from too far fixing is not fast enough
+ */
 
 #define MAX 9999
 
@@ -39,26 +40,39 @@ void setup() {
 }
 
 void loop() {
-  if (side == 'R') {
+  /*while(true){
+    robotStop(50);
+    for(int i = 0; i < 100; i++){
+      forwardSlightly(1);
+    }
+  }*/
+  /*while(true){
+    forwardSlightly(1);
+    robotStop(50);
+  }*/
+  while(true)
+  Serial.println(String(getRangeRightFront()) + ", " + String(getRangeRightRear()));
+  
+  if(side == 'R'){
     float rangeRightFront = getRangeRightFront();
     float rangeRightRear = getRangeRightRear();
     float rangeFrontLow = getRangeFrontLow();
 
-    if (rangeFrontLow < minWalkable) {
-      while (true);
+    if(rangeFrontLow < minWalkable){
+      while(true);
     }
-
+ 
     // update last far
-    if (isFar(rangeRightFront)) {
+    if(isFar(rangeRightFront)){
       lastFar = tick;
     }
     // if it's currently straight and not far --> update last sensed distance
-    else if (tick - lastFar >= minTickToBeStraight && !isFar(rangeRightFront) && hzPosBad(rangeRightFront) == 0) {
+    else if(tick - lastFar >= minTickToBeStraight && !isFar(rangeRightFront) && hzPosBad(rangeRightFront) == 0){
       lastSense = rangeRightFront;
     }
 
     // if bot detect the opened door
-    if (tick - lastLineDetect > roomEnterSteps * 2 && detectLine()) {
+    if(tick - lastLineDetect > roomEnterSteps*2 && detectLine()){
       alignBot();
       forwardFast(roomEnterSteps);
       robotStop(20);                // tmp
@@ -69,27 +83,27 @@ void loop() {
       lastSense = doorWide - lastSense;
       lastLineDetect = tick;
     }
-    // IF SIDE-FRONT SENSOR IS FAR
-    else if (isFar(rangeRightFront)) {
+    // IF SIDE-FRONT SENSOR IS FAR 
+    else if(isFar(rangeRightFront)){
       // begin smooth 90 deg turn
       digitalWrite(LEDPin, HIGH);
       rightSlightly(1);
-      forwardSlightly((int)(lastSense * (1.0 / 10.0)));   // steps : wall vs sensor (the more the broader) old = 4/13
+      forwardSlightly((int)(lastSense*(1.0/10.0)));       // steps : wall vs sensor (the more the broader) old = 4/13
       digitalWrite(LEDPin, LOW);
       lastBalance = tick;
       lastFar = tick;
     }
     // IF TOO FAR OR SIDE-FRONT SENSOR IS SIGNIFICANTLY FURTHER THAN SIDE-REAR SENSOR
-    else if (hzPosBad(rangeRightFront) == 1 || rangeRightFront - (isFar(rangeRightRear) ? MAX : rangeRightRear) >= minFurther) { // since this if()`, rangeRightFront is conditionally guaranteed not far
+    else if(hzPosBad(rangeRightFront) == 1 || rangeRightFront - (isFar(rangeRightRear)? MAX:rangeRightRear) >= minFurther){  // since this if()`, rangeRightFront is conditionally guaranteed not far
       // TURN RIGHT SLIGHTLY
-      if (lastBalance == tick - 1) {
+      if(lastBalance == tick-1){
         rightSlightly(1);
       }
-      else {
+      else{
         rightSlightly(2);
-        for (int i = 0; i < tick - lastBalance; i++) {
+        for(int i = 0; i < tick-lastBalance; i++){
           forwardSlightly(1);
-          if (isFar(getRangeRightFront()) || rangeFrontLow < minWalkable) {
+          if(isFar(getRangeRightFront()) || rangeFrontLow < minWalkable){
             break;
           }
         }
@@ -98,16 +112,16 @@ void loop() {
       lastBalance = tick;
     }
     // IF TOO CLOSE OR SIDE-REAR SENSOR IS SIGNIFICANTLY FURTHER THAN SIDE-FRONT SENSOR
-    else if (hzPosBad(rangeRightFront) == -1 || rangeRightRear - rangeRightFront >= minFurther) {     // rangeRightRear must not too far too (auto detect)
+    else if(hzPosBad(rangeRightFront) == -1 || rangeRightRear - rangeRightFront >= minFurther){       // rangeRightRear must not too far too (auto detect)
       // TURN LEFT SLIGHTLY
-      if (lastBalance == tick - 1) {
+      if(lastBalance == tick-1){
         leftSlightly(1);
       }
-      else {
+      else{
         leftSlightly(2);
-        for (int i = 0; i < tick - lastBalance; i++) {
+        for(int i = 0; i < tick-lastBalance; i++){
           forwardSlightly(1);
-          if (isFar(getRangeRightFront()) || rangeFrontLow < minWalkable) {
+          if(isFar(getRangeRightFront()) || rangeFrontLow < minWalkable){
             break;
           }
         }
@@ -115,52 +129,52 @@ void loop() {
       }
       lastBalance = tick;
     }
-    else if (!isFarIR(rangeFrontLow) && rangeFrontLow >= minWalkable) {
+    else if(!isFarIR(rangeFrontLow) && rangeFrontLow >= minWalkable){
       // FORWARD SLIGHTLY
       forwardSlightly(1);
     }
-    else {
+    else{
       // LET THE SENSOR FACE THE WALL
       left90(1);
     }
   }
-  else if (side == 'L') {
+  else if(side == 'L'){
     // IF SIDE-FRONT SENSOR IS FAR OR SIDE-FRONT SENSOR IS SIGNIFICANTLY FURTHER THAN SIDE-REAR SENSOR
-    if (isFar(getRangeLeftFront()) || getRangeLeftFront() - getRangeLeftRear() >= minFurther) {
+    if(isFar(getRangeLeftFront()) || getRangeLeftFront() - getRangeLeftRear() >= minFurther){
       // TURN LEFT SLIGHTLY
       leftSlightly(1);
     }
     // IF SIDE-REAR SENSOR IS SIGNIFICANTLY FURTHER THAN SIDE-FRONT SENSOR
-    else if (getRangeLeftRear() - getRangeLeftFront() >= minFurther) {
+    else if(getRangeLeftRear() - getRangeLeftFront() >= minFurther){
       // TURN RIGHT SLIGHTLY
       rightSlightly(1);
     }
-    else if (getRangeFrontLow() >= minWalkable) {
+    else if(getRangeFrontLow() >= minWalkable){
       // FORWARD SLIGHTLY
       forwardSlightly(1);
     }
-    else {
+    else{
       // LET THE SENSOR FACE THE WALL
       right90(1);
     }
   }
-  else { // something's wrong
+  else{ // something's wrong
     Serial.print("ERROR: loop(): There is no such side > ");
     Serial.println(side);
-    while (true);
+    while(true);
   }
   tick++;
 }
 
-int hzPosBad(float range) {
+int hzPosBad(float range){
   //return 0;
-  if (range <= maxTooClose) {
+  if(range <= maxTooClose){
     return -1;
   }
-  else if (range >= minTooFar) {
+  else if(range >= minTooFar){
     return 1;
   }
-  else {
+  else{
     return 0;
   }
 }
