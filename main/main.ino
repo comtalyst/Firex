@@ -1,7 +1,4 @@
-/*
- * Maze traversing module
- * 
- */
+// Firex
 
 #define MAX 9999
 
@@ -10,15 +7,12 @@ const int LEDPin = 13;
 char side = 'R';            // focusing side of wall following
 
 const float minFurther = 1;        // minimum distance difference between two sensors that would make the robot readjust itself
-const float minFar = 40;            // minimum distance from sensor that would be considered far
+const float minFar = 30;            // minimum distance from sensor that would be considered far
 const float minWalkable = 0;       // minimum distance needed in front of the bot for it to walk forward
-const int minTickToBeStraight = 6;
 
 int tick;
 int lastBalance;
-int lastSense = 15;
-int lastFar = -MAX;
-int lastLineDetect = -MAX;
+int lastSense = 30;
 
 void setup() {
   Serial.begin(9600);                     // Open the serial port
@@ -31,28 +25,18 @@ void setup() {
 }
 
 void loop() {
-  /*if(side == 'R'){
+  if(side == 'R'){      // TOMORROW --> MIMIC TO THE LEFT
     float rangeRightFront = getRangeRightFront();
     float rangeRightRear = getRangeRightRear();
-    if(tick-lastFar >= minTickToBeStraight && !isFar(rangeRightFront)){
+    if(!isFar(rangeRightFront)){
       lastSense = rangeRightFront;
     }
-    if(tick - lastLineDetect > 20 && detectLine()){
-      lastLineDetect = tick;
-      alignBot();
-      forwardFast(10);
-      robotStop(20);
-      // search for candle
-      right90(2);
-    }
     // IF SIDE-FRONT SENSOR IS FAR OR SIDE-FRONT SENSOR IS SIGNIFICANTLY FURTHER THAN SIDE-REAR SENSOR
-    else if(isFar(rangeRightFront)){
+    if(isFar(rangeRightFront)){
       digitalWrite(LEDPin, HIGH);
-      rightSlightly(1);
-      forwardSlightly((int)(lastSense*(4.0/13.0)));       // steps : wall vs sensor (the more the broader)
+      right90Ex(lastSense);
       digitalWrite(LEDPin, LOW);
       lastBalance = tick;
-      lastFar = tick;
     }
     else if(rangeRightFront - (isFar(rangeRightRear)? MAX:rangeRightRear) >= minFurther){
       // TURN RIGHT SLIGHTLY
@@ -123,5 +107,5 @@ void loop() {
     Serial.println(side);
     while(true);
   }
-  tick++;*/
+  tick++;
 }
