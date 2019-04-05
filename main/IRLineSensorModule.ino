@@ -3,12 +3,12 @@ const byte rightIRLineSensorPin = A6;
 
 const int IRLMaxWhite = 600;          // maximum sensor value that is considered white tape
 
-void readyIRL(){
+void readyIRL() {
   pinMode(leftIRLineSensorPin, INPUT);
   pinMode(rightIRLineSensorPin, INPUT);
 }
 
-bool detectLine(){                    // is any of the sensors detect the tape?
+bool detectLine() {                   // is any of the sensors detect the tape?
   int leftValue = analogRead(leftIRLineSensorPin);
   int rightValue = analogRead(rightIRLineSensorPin);
   if (leftValue <= IRLMaxWhite || rightValue <= IRLMaxWhite) {
@@ -17,8 +17,8 @@ bool detectLine(){                    // is any of the sensors detect the tape?
   return false;
 }
 
-void alignBot(){
-  while(true){
+void alignBot() {
+  while (true) {
     int leftValue = analogRead(leftIRLineSensorPin);
     int rightValue = analogRead(rightIRLineSensorPin);
     if (leftValue <= IRLMaxWhite && rightValue <= IRLMaxWhite) {              // both are on the tape!
@@ -30,8 +30,8 @@ void alignBot(){
     else if (leftValue <= IRLMaxWhite) {                                      // left sensor is on the tape
       leftFast(1);
     }
-    else{                                                                     // none is on the tape
+    else {                                                                    // none is on the tape
       forwardFast(1);
     }
-  } 
+  }
 }
