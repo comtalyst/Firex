@@ -20,7 +20,7 @@
 
 
 float sonicRange(byte trigPin, byte echoPin, float maxRange) {
-  // function, with arguments: (trigger pin, echo pin, maximum range (in cm))  
+  // function, with arguments: (trigger pin, echo pin, maximum range (in cm))
   float timeout;                      // # of microseconds sensor will search for object
   long timeRoundTrip;                 // total time (from echo pin) for sound to travel
   float distanceToObject;             // the calculated distance to the object (in cm)
@@ -99,7 +99,7 @@ const int leftRearEchoPin = 8;
 const int leftRearTrigPin = 7;
 const float minFar = 40;              // minimum distance from sensor that would be considered far
 
-void readySonic(){
+void readySonic() {
   pinMode(rightFrontTrigPin, OUTPUT);
   pinMode(rightFrontEchoPin, INPUT);
   pinMode(rightRearTrigPin, OUTPUT);
@@ -110,23 +110,23 @@ void readySonic(){
   pinMode(leftRearEchoPin, INPUT);
 }
 
-float getRangeRightFront(){
+float getRangeRightFront() {
   return sonicRange(rightFrontTrigPin, rightFrontEchoPin, minFar);
 }
-float getRangeRightRear(){
+float getRangeRightRear() {
   return sonicRange(rightRearTrigPin, rightRearEchoPin, minFar);
 }
-float getRangeLeftFront(){
+float getRangeLeftFront() {
   return sonicRange(leftFrontTrigPin, leftFrontEchoPin, minFar);
 }
-float getRangeLeftRear(){
+float getRangeLeftRear() {
   return sonicRange(leftRearTrigPin, leftRearEchoPin, minFar);
 }
-bool isFar(float range){
-  if(range == 0 || range >= minFar){
+bool isFar(float range) {
+  if (range == 0 || range >= minFar) {
     return true;
   }
-  else{
+  else {
     return false;
   }
 }

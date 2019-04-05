@@ -2,7 +2,7 @@ const byte lowIRSensorPin = A7;
 
 #define MAX 9999
 
-void readyIR(){
+void readyIR() {
   pinMode(lowIRSensorPin, INPUT);
 }
 
@@ -11,17 +11,17 @@ float getIRRange(int IRValue) {
   return IRRange;
 }
 
-float getRangeFrontLow(){         // UNFINISHED
+float getRangeFrontLow() {        // UNFINISHED
   float value = analogRead(lowIRSensorPin);
   return getIRRange(value);
 }
 
 
-bool isFarIR(float range){
-  if(range >= 30){
+bool isFarIR(float range) {
+  if (range >= 30) {
     return true;
   }
-  else{
+  else {
     return false;
   }
 }
