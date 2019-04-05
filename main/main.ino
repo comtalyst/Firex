@@ -14,7 +14,7 @@ const int LEDPin = 13;
 
 char side = 'R';            // focusing side of wall following
 
-const float minFurther = 1;        // minimum distance difference between two sensors that would make the robot readjust itself
+const float minFurther = 2;        // minimum distance difference between two sensors that would make the robot readjust itself
 const float minTooFar = 20;
 const float maxTooClose = 5;
 const float minWalkable = 12;       // minimum distance needed in front of the bot for it to walk forward
@@ -33,20 +33,34 @@ void setup() {
   delay(100);
   pinMode(LEDPin, OUTPUT);                // onboard LED
   readyServo();
-  //readySonic();
-  //readyIRL();
-  //readyIR();
+  readySonic();
+  readyIRL();
+  readyIR();
   blinkOK(3);                             // ok now
 }
 
 void loop() {
-  /*robotStop(100);
-  forwardFast(200);*/
+  /*while(true){
+    robotStop(50);
+    for(int i = 0; i < 100; i++){
+      forwardSlightly(1);
+    }
+  }*/
+  /*while(true){
+    forwardSlightly(1);
+    robotStop(50);
+  }*/
+  while(true)
+  Serial.println(String(getRangeRightFront()) + ", " + String(getRangeRightRear()));
   
   if(side == 'R'){
     float rangeRightFront = getRangeRightFront();
     float rangeRightRear = getRangeRightRear();
     float rangeFrontLow = getRangeFrontLow();
+
+    if(rangeFrontLow < minWalkable){
+      while(true);
+    }
  
     // update last far
     if(isFar(rangeRightFront)){
@@ -74,7 +88,7 @@ void loop() {
       // begin smooth 90 deg turn
       digitalWrite(LEDPin, HIGH);
       rightSlightly(1);
-      forwardSlightly((int)(lastSense*(4.0/13.0)));       // steps : wall vs sensor (the more the broader)
+      forwardSlightly((int)(lastSense*(1.0/10.0)));       // steps : wall vs sensor (the more the broader) old = 4/13
       digitalWrite(LEDPin, LOW);
       lastBalance = tick;
       lastFar = tick;
@@ -89,7 +103,7 @@ void loop() {
         rightSlightly(2);
         for(int i = 0; i < tick-lastBalance; i++){
           forwardSlightly(1);
-          if(isFar(getRangeRightFront())){
+          if(isFar(getRangeRightFront()) || rangeFrontLow < minWalkable){
             break;
           }
         }
@@ -107,7 +121,7 @@ void loop() {
         leftSlightly(2);
         for(int i = 0; i < tick-lastBalance; i++){
           forwardSlightly(1);
-          if(isFar(getRangeRightFront())){
+          if(isFar(getRangeRightFront()) || rangeFrontLow < minWalkable){
             break;
           }
         }
@@ -152,7 +166,8 @@ void loop() {
   tick++;
 }
 
-int hzLoc(float range){
+int hzPosBad(float range){
+  //return 0;
   if(range <= maxTooClose){
     return -1;
   }
