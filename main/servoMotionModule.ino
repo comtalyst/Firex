@@ -51,7 +51,7 @@ const int rightServoPin = 12;
 
 
 // Left Servo Pulse Width Constants
-const int left_forward_fast = 2000;       // CCW Fast
+const int left_forward_fast = 1900;       // CCW Fast
 const int left_forward_slow = 1600;       // CCW Slow
 const int left_stop = 1500;               // Center position
 const int left_reverse_slow = 1400;       // CW Slow
