@@ -15,7 +15,7 @@ const int LEDPin = 13;
 char side = 'R';            // focusing side of wall following
 
 const float minFurther = 2;        // minimum distance difference between two sensors that would make the robot readjust itself
-const float minTooFar = 20;
+const float minTooFar = 21;
 const float maxTooClose = 5;
 const float minWalkable = 12;       // minimum distance needed in front of the bot for it to walk forward
 const int minTickToBeStraight = 6;
@@ -40,8 +40,11 @@ void setup() {
 }
 
 void loop() {
-  while (true)
+  /*while (true){
     Serial.println(String(getRangeRightFront()) + ", " + String(getRangeRightRear()));
+    Serial.println(getRangeFrontLow());
+    delay(100);
+  }*/
 
   if (side == 'R') {
     float rangeRightFront = getRangeRightFront();
@@ -49,7 +52,9 @@ void loop() {
     float rangeFrontLow = getRangeFrontLow();
 
     if (rangeFrontLow < minWalkable) {
-      while (true);
+      while (true){
+        robotStop(100);
+      }
     }
 
     // update last far
@@ -63,6 +68,9 @@ void loop() {
 
     // if bot detect the opened door
     if (tick - lastLineDetect > roomEnterSteps * 2 && detectLine()) {
+      /*(true){
+        robotStop(1000);
+      }*/
       alignBot();
       forwardFast(roomEnterSteps);
       robotStop(20);                // tmp
@@ -75,6 +83,7 @@ void loop() {
     }
     // IF SIDE-FRONT SENSOR IS FAR
     else if (isFar(rangeRightFront)) {
+      robotStop(1000);
       // begin smooth 90 deg turn
       digitalWrite(LEDPin, HIGH);
       rightSlightly(1);
@@ -119,7 +128,7 @@ void loop() {
       }
       lastBalance = tick;
     }
-    else if (!isFarIR(rangeFrontLow) && rangeFrontLow >= minWalkable) {
+    else if (isFarIR(rangeFrontLow) || rangeFrontLow >= minWalkable) {
       // FORWARD SLIGHTLY
       forwardSlightly(1);
     }

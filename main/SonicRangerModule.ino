@@ -89,15 +89,15 @@ void sonicDistanceTest(int trigPin, int echoPin, int maxExpectedRange) {
 }
 
 //////////////////// Robin's Section ////////////////////
-const int rightFrontEchoPin = 6;
-const int rightFrontTrigPin = 5;
-const int rightRearEchoPin = 10;
-const int rightRearTrigPin = 9;                     // UNKNOWN ISSUE (CANT DETECT)
-const int leftFrontEchoPin = 4;
-const int leftFrontTrigPin = 3;
-const int leftRearEchoPin = 8;
-const int leftRearTrigPin = 7;
-const float minFar = 40;              // minimum distance from sensor that would be considered far
+const byte rightFrontEchoPin = 6;
+const byte rightFrontTrigPin = 5;
+const byte rightRearEchoPin = 10;
+const byte rightRearTrigPin = 9;
+const byte leftFrontEchoPin = 4;
+const byte leftFrontTrigPin = 3;
+const byte leftRearEchoPin = 8;
+const byte leftRearTrigPin = 7;
+const float minFar = 25;              // minimum distance from sensor that would be considered far
 
 void readySonic() {
   pinMode(rightFrontTrigPin, OUTPUT);

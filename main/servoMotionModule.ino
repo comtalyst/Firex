@@ -49,21 +49,23 @@
 const int leftServoPin = 11;
 const int rightServoPin = 12;
 
-/*
-  // Left Servo Pulse Width Constants
-  const int left_forward_fast = 2000;       // CCW Fast
-  const int left_forward_slow = 1600;       // CCW Slow
-  const int left_stop = 1500;               // Center position
-  const int left_reverse_slow = 1400;       // CW Slow
-  const int left_reverse_fast = 1000;       // CW Fast
 
-  // Right Servo Pulse Width Constants
-  const int right_forward_fast = 1200;      // CW Fast
-  const int right_forward_slow = 1400;      // CW Slow
-  const int right_stop = 1500;              // Center position
-  const int right_reverse_slow = 1600;      // CCW Slow
-  const int right_reverse_fast = 2000;      // CCW Fast
-*/
+// Left Servo Pulse Width Constants
+const int left_forward_fast = 2000;       // CCW Fast
+const int left_forward_slow = 1600;       // CCW Slow
+const int left_stop = 1500;               // Center position
+const int left_reverse_slow = 1400;       // CW Slow
+const int left_reverse_fast = 1000;       // CW Fast
+
+
+// Right Servo Pulse Width Constants
+const int right_forward_fast = 1200;      // CW Fast
+const int right_forward_slow = 1400;      // CW Slow
+const int right_stop = 1500;              // Center position
+const int right_reverse_slow = 1600;      // CCW Slow
+const int right_reverse_fast = 2000;      // CCW Fast
+
+/* Fast motors
 // Left Servo Pulse Width Constants
 const int left_forward_fast = 1350;       // CCW Fast
 const int left_forward_slow = 1400;       // CCW Slow
@@ -71,12 +73,14 @@ const int left_stop = 1500;               // Center position
 const int left_reverse_slow = 1600;       // CW Slow
 const int left_reverse_fast = 2000;       // CW Fast
 
+
 // Right Servo Pulse Width Constants
 const int right_forward_fast = 2000;      // CW Fast
 const int right_forward_slow = 1600;      // CW Slow
 const int right_stop = 1500;              // Center position
 const int right_reverse_slow = 1400;      // CCW Slow
 const int right_reverse_fast = 1000;      // CCW Fast
+*/
 
 void blinkOK(int numBlinks) {
   // blink the onboard LED to let the user know the code was properly uploaded

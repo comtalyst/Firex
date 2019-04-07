@@ -1,5 +1,5 @@
-const byte leftIRLineSensorPin = A7;
-const byte rightIRLineSensorPin = A6;
+const byte leftIRLineSensorPin = A9;
+const byte rightIRLineSensorPin = A8;
 
 const int IRLMaxWhite = 600;          // maximum sensor value that is considered white tape
 
