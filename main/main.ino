@@ -14,19 +14,22 @@ const int LEDPin = 13;
 
 char side = 'R';            // focusing side of wall following
 
-const float minFurther = 2;        // minimum distance difference between two sensors that would make the robot readjust itself
+const float minFurther = 1;        // minimum distance difference between two sensors that would make the robot readjust itself
 const float minTooFar = 21;
 const float maxTooClose = 5;
-const float minWalkable = 12;       // minimum distance needed in front of the bot for it to walk forward
+const float minWalkable = 15;       // minimum distance needed in front of the bot for it to walk forward
 const int minTickToBeStraight = 6;
 const int roomEnterSteps = 10;
 const float doorWide = 50;
+const float botWide = 14;
+const int stepsForwardAfterTurn = 18; // measure from distance between the bot at door's end to another
 
 int tick;
 int lastBalance;
 float lastSense = 15;               // last sensed distance to the l/r wall
 int lastFar = -MAX;               // last tick that detected far l/r wall
 int lastLineDetect = -MAX;
+int forceForward = 0;
 
 void setup() {
   Serial.begin(9600);                     // Open the serial port
@@ -40,6 +43,10 @@ void setup() {
 }
 
 void loop() {
+  while(true){
+    forwardFast(1);
+    delay(200);
+  }
   /*while (true){
     Serial.println(String(getRangeRightFront()) + ", " + String(getRangeRightRear()));
     Serial.println(getRangeFrontLow());
@@ -50,12 +57,6 @@ void loop() {
     float rangeRightFront = getRangeRightFront();
     float rangeRightRear = getRangeRightRear();
     float rangeFrontLow = getRangeFrontLow();
-
-    if (rangeFrontLow < minWalkable) {
-      while (true){
-        robotStop(100);
-      }
-    }
 
     // update last far
     if (isFar(rangeRightFront)) {
@@ -68,27 +69,30 @@ void loop() {
 
     // if bot detect the opened door
     if (tick - lastLineDetect > roomEnterSteps * 2 && detectLine()) {
-      /*(true){
-        robotStop(1000);
-      }*/
       alignBot();
       forwardFast(roomEnterSteps);
       robotStop(20);                // tmp
       // search for candle
       right90(2);
+      forwardFast(roomEnterSteps);
       lastBalance = tick;
       lastFar = -MAX;
-      lastSense = doorWide - lastSense;
+      lastSense = doorWide - lastSense - botWide;
       lastLineDetect = tick;
     }
     // IF SIDE-FRONT SENSOR IS FAR
     else if (isFar(rangeRightFront)) {
-      robotStop(1000);
       // begin smooth 90 deg turn
-      digitalWrite(LEDPin, HIGH);
       rightSlightly(1);
-      forwardSlightly((int)(lastSense * (1.0 / 10.0)));   // steps : wall vs sensor (the more the broader) old = 4/13
-      digitalWrite(LEDPin, LOW);
+      float turnForwardValue = pow(lastSense*0.5,0.5);   // steps : wall vs sensor (the more the broader) old = lastsense*4/13
+      int stepsPerRotate;
+      if(fmod(turnForwardValue,1.0) < 0.5){
+        stepsPerRotate = (int)turnForwardValue;
+      }
+      else{
+        stepsPerRotate = (int)turnForwardValue + 1;
+      }
+      forwardSlightly(stepsPerRotate);   
       lastBalance = tick;
       lastFar = tick;
     }
@@ -153,8 +157,10 @@ void loop() {
       forwardSlightly(1);
     }
     else {
+      digitalWrite(LEDPin, HIGH);
       // LET THE SENSOR FACE THE WALL
       right90(1);
+      digitalWrite(LEDPin, LOW);
     }
   }
   else { // something's wrong

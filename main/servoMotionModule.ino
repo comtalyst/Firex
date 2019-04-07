@@ -59,7 +59,7 @@ const int left_reverse_fast = 1000;       // CW Fast
 
 
 // Right Servo Pulse Width Constants
-const int right_forward_fast = 1200;      // CW Fast
+const int right_forward_fast = 1000;      // CW Fast
 const int right_forward_slow = 1400;      // CW Slow
 const int right_stop = 1500;              // Center position
 const int right_reverse_slow = 1600;      // CCW Slow
@@ -256,8 +256,8 @@ void createPulse(byte servoPin, int pulseWidth) {
 const int turnSteps = 1;         // steps taken per turn action
 const int forwardSteps = 1;      // steps taken per walk action
 
-const int right90Steps = 22;
-const int left90Steps = 22;
+const int right90Steps = 24;
+const int left90Steps = 24;
 
 const float stepsPerCm = 100.0 / 32.5;    // 100 steps is 32.5 cm
 const float firstSensorTailDistance = 15.0;

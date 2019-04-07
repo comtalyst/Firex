@@ -97,7 +97,7 @@ const byte leftFrontEchoPin = 4;
 const byte leftFrontTrigPin = 3;
 const byte leftRearEchoPin = 8;
 const byte leftRearTrigPin = 7;
-const float minFar = 25;              // minimum distance from sensor that would be considered far
+const float minFar = 35;              // minimum distance from sensor that would be considered far
 
 void readySonic() {
   pinMode(rightFrontTrigPin, OUTPUT);
