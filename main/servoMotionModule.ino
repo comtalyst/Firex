@@ -261,6 +261,8 @@ const int left90Steps = 24;
 
 const float stepsPerCm = 100.0 / 32.5;    // 100 steps is 32.5 cm
 const float firstSensorTailDistance = 15.0;
+const int stepsForwardAfterTurn = 25*stepsPerCm; // measure from distance between the bot at door's end to another, min steps to confirm the "stick" (180 turn)
+
 
 bool firstForward = false;
 /*
@@ -287,9 +289,15 @@ void right90(int multiplier) {
 void left90(int multiplier) {
   leftFast(left90Steps * multiplier);
 }
-void right90Ex(float lastSense) {
-  int moveSteps = (int)(firstSensorTailDistance * stepsPerCm + lastSense * stepsPerCm);
+bool right90Ex(float lastSense) {
+  int moveSteps = (int)((4+firstSensorTailDistance) * stepsPerCm + lastSense * stepsPerCm);
   forwardFast(moveSteps);
   right90(1);
-  forwardFast(moveSteps);
+  for(int i = 0; i < stepsForwardAfterTurn; i++){
+    forwardFast(1);
+    if(detectLine()){
+      return true;
+    }
+  }
+  return false;
 }

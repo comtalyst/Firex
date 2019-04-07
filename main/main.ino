@@ -15,14 +15,14 @@ const int LEDPin = 13;
 char side = 'R';            // focusing side of wall following
 
 const float minFurther = 1;        // minimum distance difference between two sensors that would make the robot readjust itself
+const float minSuperFurther = 2;
 const float minTooFar = 21;
 const float maxTooClose = 5;
 const float minWalkable = 15;       // minimum distance needed in front of the bot for it to walk forward
 const int minTickToBeStraight = 6;
 const int roomEnterSteps = 10;
 const float doorWide = 50;
-const float botWide = 14;
-const int stepsForwardAfterTurn = 18; // measure from distance between the bot at door's end to another
+const float botWide = 18;
 
 int tick;
 int lastBalance;
@@ -30,6 +30,7 @@ float lastSense = 15;               // last sensed distance to the l/r wall
 int lastFar = -MAX;               // last tick that detected far l/r wall
 int lastLineDetect = -MAX;
 int forceForward = 0;
+bool isLine;
 
 void setup() {
   Serial.begin(9600);                     // Open the serial port
@@ -39,14 +40,18 @@ void setup() {
   readySonic();
   readyIRL();
   readyIR();
+  for(int i = 0; i < 10; i++){
+    getRangeRightFront();
+    getRangeRightRear();
+    delay(10);
+  }
   blinkOK(3);                             // ok now
 }
 
 void loop() {
-  while(true){
+  /*while(true){
     forwardFast(1);
-    delay(200);
-  }
+  }*/
   /*while (true){
     Serial.println(String(getRangeRightFront()) + ", " + String(getRangeRightRear()));
     Serial.println(getRangeFrontLow());
@@ -59,11 +64,11 @@ void loop() {
     float rangeFrontLow = getRangeFrontLow();
 
     // update last far
-    if (isFar(rangeRightFront)) {
+    if (isFar(rangeRightFront) || (!isFar(rangeRightRear) && rangeRightFront - rangeRightRear >= minSuperFurther)) {
       lastFar = tick;
     }
-    // if it's currently straight and not far --> update last sensed distance
-    else if (tick - lastFar >= minTickToBeStraight && !isFar(rangeRightFront) && hzPosBad(rangeRightFront) == 0) {
+    // if it's currently straight (already sufficient from switching to sharp turn) and not far --> update last sensed distance
+    else if (!isFar(rangeRightFront) && hzPosBad(rangeRightFront) == 0) {
       lastSense = rangeRightFront;
     }
 
@@ -81,23 +86,15 @@ void loop() {
       lastLineDetect = tick;
     }
     // IF SIDE-FRONT SENSOR IS FAR
-    else if (isFar(rangeRightFront)) {
+    else if (isFar(rangeRightFront) || (!isFar(rangeRightRear) && rangeRightFront - rangeRightRear >= minSuperFurther)) {
+      leftSlightly(5);
       // begin smooth 90 deg turn
-      rightSlightly(1);
-      float turnForwardValue = pow(lastSense*0.5,0.5);   // steps : wall vs sensor (the more the broader) old = lastsense*4/13
-      int stepsPerRotate;
-      if(fmod(turnForwardValue,1.0) < 0.5){
-        stepsPerRotate = (int)turnForwardValue;
-      }
-      else{
-        stepsPerRotate = (int)turnForwardValue + 1;
-      }
-      forwardSlightly(stepsPerRotate);   
+      bool isLine = right90Ex(1);
       lastBalance = tick;
       lastFar = tick;
     }
     // IF TOO FAR OR SIDE-FRONT SENSOR IS SIGNIFICANTLY FURTHER THAN SIDE-REAR SENSOR
-    else if (hzPosBad(rangeRightFront) == 1 || rangeRightFront - (isFar(rangeRightRear) ? MAX : rangeRightRear) >= minFurther) { // since this if()`, rangeRightFront is conditionally guaranteed not far
+    else if (hzPosBad(rangeRightFront) == 1 || (!isFar(rangeRightRear) && rangeRightFront - rangeRightRear >= minFurther)) { // since this if()`, rangeRightFront is conditionally guaranteed not far
       // TURN RIGHT SLIGHTLY
       if (lastBalance == tick - 1) {
         rightSlightly(1);
