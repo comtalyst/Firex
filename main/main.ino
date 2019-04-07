@@ -16,7 +16,7 @@ char side = 'R';            // focusing side of wall following
 
 const int sensorAvgTimes = 3;
 const float minFurther = 1.0;        // minimum distance difference between two sensors that would make the robot readjust itself
-const float minSuperFurther = 1.3;   // minimum distance difference between two sensors that would trigger isFar()
+const float minSuperFurther = 1.2;   // minimum distance difference between two sensors that would trigger isFar()
 const float minTooFar = 21;        // minimum distance difference between two sensors that would make the robot comes closer to the wall
 const float maxTooClose = 5;       // minimum distance difference between two sensors that would make the robot moves away from the wall
 const float minWalkable = 15;      // minimum distance needed in front of the bot for it to walk forward (wall detection)
@@ -100,7 +100,9 @@ void loop() {
     // IF TOO FAR OR SIDE-FRONT SENSOR IS SIGNIFICANTLY FURTHER THAN SIDE-REAR SENSOR
     else if (hzPosBad(rangeRightFront) == 1 || (!isFar(rangeRightRear) && rangeRightFront - rangeRightRear >= minFurther)) { // since this if(), rangeRightFront is conditionally guaranteed not far
       // TURN RIGHT SLIGHTLY
-      if (lastBalance == tick - 1) {    // no need for advanced adjustment
+      rightSlightly(1);
+      forwardSlightly(1);
+      /*if (lastBalance == tick - 1) {    // no need for advanced adjustment
         rightSlightly(1);
       }
       else {
@@ -112,13 +114,15 @@ void loop() {
           }
         }
         leftSlightly(1);
-      }
+      }*/
       lastBalance = tick;
     }
     // IF TOO CLOSE OR SIDE-REAR SENSOR IS SIGNIFICANTLY FURTHER THAN SIDE-FRONT SENSOR
     else if (hzPosBad(rangeRightFront) == -1 || rangeRightRear - rangeRightFront >= minFurther) {     // rangeRightRear must not too far too (auto detect)
       // TURN LEFT SLIGHTLY
-      if (lastBalance == tick - 1) {
+      leftSlightly(1);
+      forwardSlightly(1);
+      /*if (lastBalance == tick - 1) {
         leftSlightly(1);
       }
       else {
@@ -130,7 +134,7 @@ void loop() {
           }
         }
         rightSlightly(1);
-      }
+      }*/
       lastBalance = tick;
     }
     // CAN IT NOW MOVES FORWARD?
