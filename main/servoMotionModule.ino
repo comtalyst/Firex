@@ -261,8 +261,8 @@ const int left90Steps = 24;
 
 const float stepsPerCm = 100.0 / 32.5;    // 100 steps is 32.5 cm
 const float firstSensorTailDistance = 15.0;
-const int stepsForwardAfterTurn = 25*stepsPerCm; // measure from distance between the bot at door's end to another, min steps to confirm the "stick" (180 turn)
-
+const int stepsForwardAfterTurn = 25 * stepsPerCm; // measure from distance between the bot at door's end to another, min steps to confirm the "stick" (180 turn)
+const int stepsAwayBefore90 = 5;   // initialize turn(this) in opposite direction before do the sharp turn to prevent crashing
 
 bool firstForward = false;
 /*
@@ -290,12 +290,13 @@ void left90(int multiplier) {
   leftFast(left90Steps * multiplier);
 }
 bool right90Ex(float lastSense) {
-  int moveSteps = (int)((4+firstSensorTailDistance) * stepsPerCm + lastSense * stepsPerCm);
+  leftSlightly(stepsAwayBefore90);
+  int moveSteps = (int)((4 + firstSensorTailDistance) * stepsPerCm + lastSense * stepsPerCm);
   forwardFast(moveSteps);
   right90(1);
-  for(int i = 0; i < stepsForwardAfterTurn; i++){
+  for (int i = 0; i < stepsForwardAfterTurn; i++) {
     forwardFast(1);
-    if(detectLine()){
+    if (detectLine()) {
       return true;
     }
   }
