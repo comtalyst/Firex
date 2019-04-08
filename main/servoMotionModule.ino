@@ -51,7 +51,7 @@ const int rightServoPin = 12;
 
 
 // Left Servo Pulse Width Constants
-const int left_forward_fast = 1800;       // CCW Fast
+const int left_forward_fast = 1850;       // CCW Fast
 const int left_forward_slow = 1600;       // CCW Slow
 const int left_stop = 1500;               // Center position
 const int left_reverse_slow = 1400;       // CW Slow
@@ -254,15 +254,15 @@ void createPulse(byte servoPin, int pulseWidth) {
 ////////////// Robin's
 
 const int turnSteps = 1;         // steps taken per turn action
-const int forwardSteps = 1;      // steps taken per walk action
+const int forwardSteps = 3;      // steps taken per walk action
 
 const int right90Steps = 24;
 const int left90Steps = 24;
 
-const float stepsPerCm = 100.0 / 32.5;    // 100 steps is 32.5 cm
+//const float stepsPerCm = 100.0 / 32.5;    // 100 steps is 32.5 cm
 const float firstSensorTailDistance = 15.0;
 const int stepsForwardAfterTurn = 25 * stepsPerCm; // measure from distance between the bot at door's end to another, min steps to confirm the "stick" (180 turn)
-const int stepsAwayBefore90 = 1;   // initialize turn(this) in opposite direction before do the sharp turn to prevent crashing
+const int stepsAwayBefore90 = 0;   // initialize turn(this) in opposite direction before do the sharp turn to prevent crashing
 
 bool firstForward = false;
 /*
@@ -296,6 +296,9 @@ bool right90Ex(float lastSense) {
   right90(1);
   for (int i = 0; i < stepsForwardAfterTurn; i++) {
     forwardFast(1);
+    if(!isFar(getRangeRightFront())){
+      break;
+    }
     if (detectLine()) {
       return true;
     }
