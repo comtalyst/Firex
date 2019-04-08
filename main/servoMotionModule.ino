@@ -51,7 +51,7 @@ const int rightServoPin = 12;
 
 
 // Left Servo Pulse Width Constants
-const int left_forward_fast = 1900;       // CCW Fast
+const int left_forward_fast = 1800;       // CCW Fast
 const int left_forward_slow = 1600;       // CCW Slow
 const int left_stop = 1500;               // Center position
 const int left_reverse_slow = 1400;       // CW Slow
@@ -262,7 +262,7 @@ const int left90Steps = 24;
 const float stepsPerCm = 100.0 / 32.5;    // 100 steps is 32.5 cm
 const float firstSensorTailDistance = 15.0;
 const int stepsForwardAfterTurn = 25 * stepsPerCm; // measure from distance between the bot at door's end to another, min steps to confirm the "stick" (180 turn)
-const int stepsAwayBefore90 = 5;   // initialize turn(this) in opposite direction before do the sharp turn to prevent crashing
+const int stepsAwayBefore90 = 1;   // initialize turn(this) in opposite direction before do the sharp turn to prevent crashing
 
 bool firstForward = false;
 /*

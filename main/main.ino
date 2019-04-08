@@ -20,6 +20,7 @@ const float minSuperFurther = 1.2;   // minimum distance difference between two 
 const float minTooFar = 21;        // minimum distance difference between two sensors that would make the robot comes closer to the wall
 const float maxTooClose = 5;       // minimum distance difference between two sensors that would make the robot moves away from the wall
 const float minWalkable = 15;      // minimum distance needed in front of the bot for it to walk forward (wall detection)
+const float maxDiffConsider = 0.35;  // maximum distance difference of the side front sensor between a step that considered not anomaly (anomaly won't cause balance)
 
 const int roomEnterSteps = 10;     // steps the bot should take after entering/exiting the room
 
@@ -31,6 +32,7 @@ int lastBalance;                   // last tick that the bot balance itself (for
 float lastSense = 15;              // last sensed distance to the following wall
 int lastLineDetect = -MAX;         // last tick that the bot detect the line (for if only)
 int lastTwist = -MAX;              // last tick that the bot undergo big moves (90 turns or exit the room), use to ignore the minSuperFurther stuff
+float lastActualSense = 0;
 
 void setup() {
   Serial.begin(9600);                     // Open the serial port
@@ -46,6 +48,10 @@ void setup() {
     delay(10);
   }
   blinkOK(3);                             // ok now
+
+  if(isFar(getRangeRightFront())){
+    right90(1);
+  }
 }
 
 void loop() {
@@ -64,10 +70,15 @@ void loop() {
     rangeRightFront /= sensorAvgTimes;
     rangeRightRear /= sensorAvgTimes;
     rangeFrontLow /= sensorAvgTimes;
+    bool turnOK = false;
 
     // if it's currently straight (already sufficient from switching to sharp turn) and not far --> update last sensed distance
     if (!isFar(rangeRightFront) && hzPosBad(rangeRightFront) == 0) {
       lastSense = rangeRightFront;
+      if(lastActualSense == 0 || rangeRightFront - lastActualSense <= maxDiffConsider){
+        lastActualSense = rangeRightFront;
+        turnOK = true;
+      }
     }
 
     // if bot detect the opened door
@@ -88,6 +99,7 @@ void loop() {
       lastSense = doorWidth - (lastSense + botWidth);
       lastLineDetect = tick;
       lastTwist = tick;
+      lastActualSense = 0;
       digitalWrite(LEDPin, LOW);
     }
     // IF SIDE-FRONT SENSOR IS FAR
@@ -96,9 +108,10 @@ void loop() {
       bool isLine = right90Ex(1);
       lastBalance = tick;
       lastTwist = tick;
+      lastActualSense = 0;
     }
     // IF TOO FAR OR SIDE-FRONT SENSOR IS SIGNIFICANTLY FURTHER THAN SIDE-REAR SENSOR
-    else if (hzPosBad(rangeRightFront) == 1 || (!isFar(rangeRightRear) && rangeRightFront - rangeRightRear >= minFurther)) { // since this if(), rangeRightFront is conditionally guaranteed not far
+    else if (hzPosBad(rangeRightFront) == 1 || (turnOK && !isFar(rangeRightRear) && rangeRightFront - rangeRightRear >= minFurther)) { // since this if(), rangeRightFront is conditionally guaranteed not far
       // TURN RIGHT SLIGHTLY
       rightSlightly(1);
       forwardSlightly(1);
@@ -116,6 +129,7 @@ void loop() {
         leftSlightly(1);
       }*/
       lastBalance = tick;
+      lastActualSense = 0;
     }
     // IF TOO CLOSE OR SIDE-REAR SENSOR IS SIGNIFICANTLY FURTHER THAN SIDE-FRONT SENSOR
     else if (hzPosBad(rangeRightFront) == -1 || rangeRightRear - rangeRightFront >= minFurther) {     // rangeRightRear must not too far too (auto detect)
@@ -136,6 +150,7 @@ void loop() {
         rightSlightly(1);
       }*/
       lastBalance = tick;
+      lastActualSense = 0;
     }
     // CAN IT NOW MOVES FORWARD?
     else if (isFarIR(rangeFrontLow) || rangeFrontLow >= minWalkable) {
@@ -146,6 +161,7 @@ void loop() {
       // LET THE SENSOR FACE THE WALL
       left90(1);
       lastTwist = tick;
+      lastActualSense = 0;
     }
   }
   tick++;
