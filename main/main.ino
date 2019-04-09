@@ -8,7 +8,7 @@
 const int LEDPin = 13;
 //////////////////
 
-char side = 'R';                          // focusing side of wall following
+char side = 'L';                          // focusing side of wall following
 
 const float minFurther = 0.75;            // minimum distance difference between two sensors that would make the robot readjust itself
 const float minWalkable = 15;             // minimum distance needed in front of the bot for it to walk forward (wall detection)
@@ -25,6 +25,7 @@ const float botWidth = 18;
 
 int tick;
 float lastSense = 15;                     // last sensed distance to the following wall
+int lastRoomTick = -MAX;
 
 void setup() {
   Serial.begin(9600);                     // Open the serial port
@@ -48,14 +49,18 @@ void setup() {
 
 void loop() {
   //debugKeepMoving();
-  //debugCheckSensors();
+  debugCheckSensors();
   //debugCheckIRLine();
 
+  float rangeFrontLow = 0;
+  float s1, s2, s3;
+  s1 = getRangeFrontLow();
+  s2 = getRangeFrontLow();
+  s3 = getRangeFrontLow();
+  rangeFrontLow = selectRange(s1, s2, s3);
   if (side == 'R') {
     float rangeRightFront = 0;
-    float rangeRightRear = 0;
-    float rangeFrontLow = 0;
-    float s1, s2, s3;
+    float rangeRightRear = 0;  
     s1 = getRangeRightFront();
     s2 = getRangeRightFront();
     s3 = getRangeRightFront();
@@ -64,10 +69,6 @@ void loop() {
     s2 = getRangeRightRear();
     s3 = getRangeRightRear();
     rangeRightRear = selectRange(s1, s2, s3);
-    s1 = getRangeFrontLow();
-    s2 = getRangeFrontLow();
-    s3 = getRangeFrontLow();
-    rangeFrontLow = selectRange(s1, s2, s3);
 
     // if it's currently straight (already sufficient from switching to sharp turn) and not far --> update last sensed distance
     if (!isFar(rangeRightFront)) {
@@ -91,12 +92,34 @@ void loop() {
       forwardFast(roomEnterSteps);
       lastSense = doorWidth - (lastSense + botWidth);
       digitalWrite(LEDPin, LOW);
+      lastRoomTick = tick;
+    }
+
+    // IF DETECTS THE WALL
+    else if (!isFarIR(rangeFrontLow) && rangeFrontLow < minWalkable){
+      // LET THE SENSOR FACE THE WALL
+      left90(1);
     }
 
     // IF SIDE-FRONT SENSOR IS FAR
     else if (isFar(rangeRightFront)) {
       // SHARP 90 DEG TURN
-      right90Ex(1);
+      right90Ex(1, tick-lastRoomTick == 1);
+    }
+
+
+    // IF SIDE-FRONT SENSOR IS SIGNIFICANTLY FURTHER THAN SIDE-REAR SENSOR
+    else if (!isFar(rangeRightRear) && rangeRightFront - rangeRightRear >= minFurther) {  // since this if(), rangeRightFront is conditionally guaranteed not far
+      // TURN RIGHT SLIGHTLY
+      rightSlightly(1);
+      forwardSlightly(1);
+    }
+    
+    // IF SIDE-REAR SENSOR IS SIGNIFICANTLY FURTHER THAN SIDE-FRONT SENSOR
+    else if (rangeRightRear - rangeRightFront >= minFurther) {                            // rangeRightRear must not too far too (auto detect)
+      // TURN LEFT SLIGHTLY
+      leftSlightly(1);
+      forwardSlightly(1);
     }
 
     /*// IF TOO FAR OR TOO CLOSE
@@ -112,30 +135,65 @@ void loop() {
         right90(1);
       }
     }*/
-
-    // IF SIDE-FRONT SENSOR IS SIGNIFICANTLY FURTHER THAN SIDE-REAR SENSOR
-    else if (!isFar(rangeRightRear) && rangeRightFront - rangeRightRear >= minFurther) {  // since this if(), rangeRightFront is conditionally guaranteed not far
-      // TURN RIGHT SLIGHTLY
-      rightSlightly(1);
+    
+    // IT CAN NOW MOVES FORWARD
+    else {
+      // FORWARD SLIGHTLY
       forwardSlightly(1);
     }
-    
-    // IF SIDE-REAR SENSOR IS SIGNIFICANTLY FURTHER THAN SIDE-FRONT SENSOR
-    else if (rangeRightRear - rangeRightFront >= minFurther) {                            // rangeRightRear must not too far too (auto detect)
-      // TURN LEFT SLIGHTLY
+  }
+  else if (side == 'L') {
+    float rangeLeftFront = 0;
+    float rangeLeftRear = 0;  
+    s1 = getRangeLeftFront();
+    s2 = getRangeLeftFront();
+    s3 = getRangeLeftFront();
+    rangeLeftFront = selectRange(s1, s2, s3);
+    s1 = getRangeLeftRear();
+    s2 = getRangeLeftRear();
+    s3 = getRangeLeftRear();
+    rangeLeftRear = selectRange(s1, s2, s3);
+
+    if (!isFar(rangeLeftFront)) {
+      lastSense = rangeLeftFront;
+    }
+
+    if (detectLine()) {
+      digitalWrite(LEDPin, HIGH);
+      alignBot();
+      forwardFast(roomEnterSteps);
+
+      // THESE ARE WIP
+      robotStop(20);
+      // search for candle
+      left90(2);
+
+      forwardFast(roomEnterSteps);
+      lastSense = doorWidth - (lastSense + botWidth);
+      digitalWrite(LEDPin, LOW);
+      lastRoomTick = tick;
+    }
+
+    else if (!isFarIR(rangeFrontLow) && rangeFrontLow < minWalkable){
+      right90(1);
+    }
+
+    else if (isFar(rangeLeftFront)) {
+      left90Ex(1, tick-lastRoomTick == 1);
+    }
+
+    else if (!isFar(rangeLeftRear) && rangeLeftFront - rangeLeftRear >= minFurther) {
       leftSlightly(1);
       forwardSlightly(1);
     }
     
-    // CAN IT NOW MOVES FORWARD?
-    else if (isFarIR(rangeFrontLow) || rangeFrontLow >= minWalkable) {
-      // FORWARD SLIGHTLY
+    else if (rangeLeftRear - rangeLeftFront >= minFurther) {
+      rightSlightly(1);
       forwardSlightly(1);
     }
     
     else {
-      // LET THE SENSOR FACE THE WALL
-      left90(1);
+      forwardSlightly(1);
     }
   }
   tick++;
@@ -166,13 +224,13 @@ void debugCheckSensors() {
     float rangeRightRear = 0;
     float rangeFrontLow = 0;
     float s1, s2, s3;
-    s1 = getRangeRightFront();
-    s2 = getRangeRightFront();
-    s3 = getRangeRightFront();
+    s1 = getRangeLeftFront();
+    s2 = getRangeLeftFront();
+    s3 = getRangeLeftFront();
     rangeRightFront = selectRange(s1, s2, s3);
-    s1 = getRangeRightRear();
-    s2 = getRangeRightRear();
-    s3 = getRangeRightRear();
+    s1 = getRangeLeftRear();
+    s2 = getRangeLeftRear();
+    s3 = getRangeLeftRear();
     rangeRightRear = selectRange(s1, s2, s3);
     s1 = getRangeFrontLow();
     s2 = getRangeFrontLow();

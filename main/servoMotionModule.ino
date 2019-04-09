@@ -216,12 +216,13 @@ void createPulse(byte servoPin, int pulseWidth) {
 const int turnSteps = 1;         // steps taken per turn action
 const int forwardSteps = 3;      // steps taken per walk action
 const int right90Steps = 24;
-const int left90Steps = 24;
+const int left90Steps = 26;
 
 const float firstSensorTailDistance = 15.0;         // distance between front sensor to robot's tail
+const float firstSensorDoorwayDistance = 3.0;
 const int stepsForwardAfterTurn = 25 * stepsPerCm;  // measure from distance between the bot at door's end to another, min steps to confirm the "stick" (180 turn)
-const int stepsForwardAfterTurn2 = 10;              // steps forward the robot will take after side90Ex() has been suspended to prevent false isFar()
-//const int stepsAwayBefore90 = 0;                    // initialize turn(this) in opposite direction before do the sharp turn to prevent crashing
+const int stepsForwardAfterTurn2 = 10;              // steps forward the robot will take after side90Ex() has been suspended to prevent false isFar() or stick
+const int stepsAwayBefore90 = 5;                    // initialize turn(this) in opposite direction before do the sharp turn to prevent crashing
 
 void readyServo() {
   pinMode(leftServoPin, OUTPUT);
@@ -243,14 +244,17 @@ void right90(int multiplier) {
 void left90(int multiplier) {
   leftFast(left90Steps * multiplier);
 }
-void right90Ex(float lastSense) {
+void right90Ex(float lastSense, bool justComeOut) {
+  if(!justComeOut){
+    leftSlightly(stepsAwayBefore90);
+  }
   const float tailAdder = 4.0;
-  int moveSteps = (int)((tailAdder + firstSensorTailDistance) * stepsPerCm + lastSense * stepsPerCm);
+  int moveSteps = (int)((tailAdder + firstSensorTailDistance - firstSensorDoorwayDistance*justComeOut) * stepsPerCm + lastSense * stepsPerCm);
   forwardFast(moveSteps);
   right90(1);
   for (int i = 0; i < stepsForwardAfterTurn; i++) {
     if (detectLine()) {
-      break;
+      return;
     }
     forwardFast(1);
     float s1 = getRangeRightFront();
@@ -258,8 +262,102 @@ void right90Ex(float lastSense) {
     float s3 = getRangeRightFront();
     float rangeRightFront = selectRange(s1, s2, s3);
     if(!isFar(rangeRightFront)){
-      forwardSlightly(stepsForwardAfterTurn2);
-      break;
+      for(int j = 0; j < stepsForwardAfterTurn2; j++){
+        if (detectLine()){
+          return;
+        }
+        forwardFast(1);
+      }
+      s1 = getRangeRightFront();
+      s2 = getRangeRightFront();
+      s3 = getRangeRightFront();
+      rangeRightFront = selectRange(s1, s2, s3);
+      if(!isFar(rangeRightFront)){
+        return;
+      }
+      // else, that is a false/short !isFar --> ready 180
+    }
+  }
+  // found nothing? --> let's 180 (skip original moveSteps)
+  forwardFast(moveSteps - stepsForwardAfterTurn2);
+  right90(1);
+  for (int i = 0; i < stepsForwardAfterTurn; i++) {
+    if (detectLine()) {
+      return;
+    }
+    forwardFast(1);
+    float s1 = getRangeRightFront();
+    float s2 = getRangeRightFront();
+    float s3 = getRangeRightFront();
+    float rangeRightFront = selectRange(s1, s2, s3);
+    if(!isFar(rangeRightFront)){
+      for(int j = 0; j < stepsForwardAfterTurn2; j++){
+        if (detectLine()){
+          return;
+        }
+        forwardFast(1);
+      }
+      return;
+    }
+  }
+}
+void left90Ex(float lastSense, bool justComeOut) {
+  if(!justComeOut){
+    rightSlightly(stepsAwayBefore90);
+  }
+  bool triggered = false;
+  const float tailAdder = 4.0;
+  int moveSteps = (int)((tailAdder + firstSensorTailDistance - firstSensorDoorwayDistance*justComeOut) * stepsPerCm + lastSense * stepsPerCm);
+  forwardFast(moveSteps);
+  left90(1);
+  for (int i = 0; i < stepsForwardAfterTurn; i++) {
+    if (detectLine()) {
+      return;
+    }
+    forwardFast(1);
+    float s1 = getRangeLeftFront();
+    float s2 = getRangeLeftFront();
+    float s3 = getRangeLeftFront();
+    float rangeLeftFront = selectRange(s1, s2, s3);
+    if(!isFar(rangeLeftFront)){
+      triggered = true;
+      for(int j = 0; j < stepsForwardAfterTurn2; j++){
+        if (detectLine()){
+          return;
+        }
+        forwardFast(1);
+      }
+      s1 = getRangeLeftFront();
+      s2 = getRangeLeftFront();
+      s3 = getRangeLeftFront();
+      rangeLeftFront = selectRange(s1, s2, s3);
+      if(!isFar(rangeLeftFront)){
+        robotStop(100);
+        return;
+      }
+    }
+  }
+  if(triggered){
+    forwardFast(moveSteps - stepsForwardAfterTurn2);
+  }
+  left90(1);
+  for (int i = 0; i < stepsForwardAfterTurn; i++) {
+    if (detectLine()) {
+      return;
+    }
+    forwardFast(1);
+    float s1 = getRangeLeftFront();
+    float s2 = getRangeLeftFront();
+    float s3 = getRangeLeftFront();
+    float rangeLeftFront = selectRange(s1, s2, s3);
+    if(!isFar(rangeLeftFront)){
+      for(int j = 0; j < stepsForwardAfterTurn2; j++){
+        if (detectLine()){
+          return;
+        }
+        forwardFast(1);
+      }
+      return;
     }
   }
 }
