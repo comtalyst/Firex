@@ -244,7 +244,6 @@ void left90(int multiplier) {
   leftFast(left90Steps * multiplier);
 }
 void right90Ex(float lastSense) {
-  leftSlightly(stepsAwayBefore90);
   const float tailAdder = 4.0;
   int moveSteps = (int)((tailAdder + firstSensorTailDistance) * stepsPerCm + lastSense * stepsPerCm);
   forwardFast(moveSteps);
