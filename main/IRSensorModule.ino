@@ -1,6 +1,12 @@
-const byte lowIRSensorPin = A7;
+// "IRSensorModule.ino" by Robin_D on 4.8.19
+// Configured for TRINITY COLLEGE INTERNATIONAL FIRE FIGHTING ROBOT CONTEST 2019
+// Robot: Firex by George School
 
 #define MAX 9999
+
+////// PINS //////
+const byte lowIRSensorPin = A7;
+/////////////////
 
 void readyIR() {
   pinMode(lowIRSensorPin, INPUT);

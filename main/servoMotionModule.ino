@@ -1,50 +1,8 @@
 /* servoMotionModule.ino
    A wheeled robot servo module
    by C.D.Odom on 2.17.2015.  Updated 7.18.17.
-   Personalized by R.D.
+   Configured for TRINITY COLLEGE INTERNATIONAL FIRE FIGHTING ROBOT CONTEST 2019  by Robin D. on 3.30.19
 */
-
-/*
-************************************************************************
-**          COPY EVERYTHING BELOW INTO YOUR MAIN SKETCH               **
-************************************************************************
-
-  // GLOBALS
-  const int leftServoPin = 0;               // servo pin for LEFT wheel
-  const int rightServoPin = 1;              // servo pin for RIGHT wheel
-  const int LEDPin = 13;                    // the onboard LED pin (for diagnostics)
-
-  void setup() {
-  pinMode(leftServoPin, OUTPUT);
-  pinMode(rightServoPin, OUTPUT);
-  pinMode(LEDPin, OUTPUT);
-  blinkOK(3);                // a diagnostic tool to let user know all is OK
-  }
-
-
-************************************************************************
-**          COPY EVERYTHING ABOVE INTO YOUR MAIN SKETCH               **
-************************************************************************
-*/
-
-/*
-  // a quick test of the servomotion module.  Of course, the loop function
-  // cannot be used by a module, so once the module is tested, delete the
-  // loop funciton!
-
-  void loop() {
-  // a silly test of some of the robot motion commands:
-  forwardFast(200);
-  robotStop(10);       // give the motors time to stop; prevents high current drain
-  reverseFast(200);
-  robotStop(10);
-  rightFast(100);
-  robotStop(10);
-  leftFast(100);
-  delay(2000);         // delay for 2 seconds, then do it again!
-  }
-*/
-
 
 const int leftServoPin = 11;
 const int rightServoPin = 12;
@@ -65,7 +23,7 @@ const int right_stop = 1500;              // Center position
 const int right_reverse_slow = 1600;      // CCW Slow
 const int right_reverse_fast = 2000;      // CCW Fast
 
-/* Fast motors
+/* For Fast motors
 // Left Servo Pulse Width Constants
 const int left_forward_fast = 1350;       // CCW Fast
 const int left_forward_slow = 1400;       // CCW Slow
@@ -81,6 +39,8 @@ const int right_stop = 1500;              // Center position
 const int right_reverse_slow = 1400;      // CCW Slow
 const int right_reverse_fast = 1000;      // CCW Fast
 */
+// Current issue with the new motor is that it explicitly turns left at the start of the first "long" forward
+
 
 void blinkOK(int numBlinks) {
   // blink the onboard LED to let the user know the code was properly uploaded
@@ -255,19 +215,13 @@ void createPulse(byte servoPin, int pulseWidth) {
 
 const int turnSteps = 1;         // steps taken per turn action
 const int forwardSteps = 3;      // steps taken per walk action
-
 const int right90Steps = 24;
 const int left90Steps = 24;
 
-//const float stepsPerCm = 100.0 / 32.5;    // 100 steps is 32.5 cm
-const float firstSensorTailDistance = 15.0;
-const int stepsForwardAfterTurn = 25 * stepsPerCm; // measure from distance between the bot at door's end to another, min steps to confirm the "stick" (180 turn)
-const int stepsAwayBefore90 = 0;   // initialize turn(this) in opposite direction before do the sharp turn to prevent crashing
-
-bool firstForward = false;
-/*
-  Current issue in the new motor is that it explicitly turns left at the start of the first "long" forward
-*/
+const float firstSensorTailDistance = 15.0;         // distance between front sensor to robot's tail
+const int stepsForwardAfterTurn = 25 * stepsPerCm;  // measure from distance between the bot at door's end to another, min steps to confirm the "stick" (180 turn)
+const int stepsForwardAfterTurn2 = 10;              // steps forward the robot will take after side90Ex() has been suspended to prevent false isFar()
+//const int stepsAwayBefore90 = 0;                    // initialize turn(this) in opposite direction before do the sharp turn to prevent crashing
 
 void readyServo() {
   pinMode(leftServoPin, OUTPUT);
@@ -289,19 +243,24 @@ void right90(int multiplier) {
 void left90(int multiplier) {
   leftFast(left90Steps * multiplier);
 }
-bool right90Ex(float lastSense) {
+void right90Ex(float lastSense) {
   leftSlightly(stepsAwayBefore90);
-  int moveSteps = (int)((4 + firstSensorTailDistance) * stepsPerCm + lastSense * stepsPerCm);
+  const float tailAdder = 4.0;
+  int moveSteps = (int)((tailAdder + firstSensorTailDistance) * stepsPerCm + lastSense * stepsPerCm);
   forwardFast(moveSteps);
   right90(1);
   for (int i = 0; i < stepsForwardAfterTurn; i++) {
-    forwardFast(1);
-    if(!isFar(getRangeRightFront())){
+    if (detectLine()) {
       break;
     }
-    if (detectLine()) {
-      return true;
+    forwardFast(1);
+    float s1 = getRangeRightFront();
+    float s2 = getRangeRightFront();
+    float s3 = getRangeRightFront();
+    float rangeRightFront = selectRange(s1, s2, s3);
+    if(!isFar(rangeRightFront)){
+      forwardSlightly(stepsForwardAfterTurn2);
+      break;
     }
   }
-  return false;
 }

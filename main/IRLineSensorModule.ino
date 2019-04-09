@@ -1,5 +1,11 @@
+// "IRLineSensorModule.ino" by Robin_D on 4.8.19
+// Configured for TRINITY COLLEGE INTERNATIONAL FIRE FIGHTING ROBOT CONTEST 2019
+// Robot: Firex by George School
+
+////// PINS //////
 const byte leftIRLineSensorPin = A9;
 const byte rightIRLineSensorPin = A8;
+/////////////////
 
 const int IRLMaxWhite = 150;          // maximum sensor value that is considered white tape
 
@@ -36,6 +42,6 @@ void alignBot() {
   }
 }
 
-int debugSense(){
+int debugSense() {
   return analogRead(leftIRLineSensorPin);
 }

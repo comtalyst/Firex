@@ -1,23 +1,6 @@
 // "SonicRangerModule.ino" by c.d.odom on 8.16.17
-// Modified for Trinity by Robin D. on 3.30.19
+// Configured for TRINITY COLLEGE INTERNATIONAL FIRE FIGHTING ROBOT CONTEST 2019 by Robin D. on 3.30.19
 // The SR04 ultrasonic sensor must be powered with 5V!
-
-/*  these need to be added to the globals section and setup() function in the main sketch!
-  // GLOBALS
-  const byte trigPin1 = 5;      // trigger pin for sonic ranger #1
-  const byte echoPin1 = A5;     // echo (data) pin for sonic ranger #1
-  const byte LEDPin = 13;       // onboard LED pin (for diagnostics)
-
-  void setup() {
-  Serial.begin(9600);
-  pinMode(trigPin1, OUTPUT);    // set the pinMode for trigger pin #1
-  pinMode(echoPin1, INPUT);     // set the pinMode for echo pin #1
-  pinMode(LEDPin, OUTPUT);      // set the pinMode for the onboard LED
-  delay(100);       // allow the serial window time to open
-  }
-
-*/
-
 
 float sonicRange(byte trigPin, byte echoPin, float maxRange) {
   // function, with arguments: (trigger pin, echo pin, maximum range (in cm))
