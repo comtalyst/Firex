@@ -9,10 +9,12 @@ Algo
 - if be at the same position with same arrangements (radius checking to prevent error) --> switch
 */
 
+//!!!!!!!!!! CANT IMPLEMENT vMAZE BECAUSE OF LIMITED MEMORY
+
 // NEXT --> DO HORIZONTAL RADIUS STUFF
 
-#define DIM 500
-#define CENTER 250
+#define DIM 1000
+#define CENTER 500
 #define MAX 9999
 
 char side = 'R';						// focusing side of wall following
@@ -20,7 +22,7 @@ int tick;								// tick (excluded switching focus)
 deque<int> history;						// history of previous actions
 int turnsInStack;						// weight of turn actions in history (left = -1, right = +1, forward = 0)
 char chk[DIM+5][DIM+5];					// marking paper (virtual step tracker)
-int chkX = CENTER, chkY = CENTER;		// marker's location (virtual bot location)
+int chkX = 192, chkY = 413;		// marker's location (virtual bot location)
 char chkDr = 'D';						// marker's direction (virtual bot direction) (U,L,D,R), update only when detect 90/180
 int lastTurnTick = -MAX;				// last tick that the bot initiate 90 degrees turn
 

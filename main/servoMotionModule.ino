@@ -214,7 +214,7 @@ void createPulse(byte servoPin, int pulseWidth) {
 ////////////// Robin's
 
 const int turnSteps = 1;         // steps taken per turn action
-const int forwardSteps = 2;      // steps taken per walk action
+const int forwardSteps = 1;      // steps taken per walk action
 const int right90Steps = 24;
 const int left90Steps = 26;
 
@@ -251,35 +251,6 @@ void right90Ex(float lastSense, bool justComeOut) {
   const float tailAdder = 4.0;
   int moveSteps = (int)((tailAdder + firstSensorTailDistance - firstSensorDoorwayDistance*justComeOut) * stepsPerCm + lastSense * stepsPerCm);
   forwardFast(moveSteps);
-  right90(1);
-  for (int i = 0; i < stepsForwardAfterTurn; i++) {
-    if (detectLine()) {
-      return;
-    }
-    forwardFast(1);
-    float s1 = getRangeRightFront();
-    float s2 = getRangeRightFront();
-    float s3 = getRangeRightFront();
-    float rangeRightFront = selectRange(s1, s2, s3);
-    if(!isFar(rangeRightFront)){
-      for(int j = 0; j < stepsForwardAfterTurn2; j++){
-        if (detectLine()){
-          return;
-        }
-        forwardFast(1);
-      }
-      s1 = getRangeRightFront();
-      s2 = getRangeRightFront();
-      s3 = getRangeRightFront();
-      rangeRightFront = selectRange(s1, s2, s3);
-      if(!isFar(rangeRightFront)){
-        return;
-      }
-      // else, that is a false/short !isFar --> ready 180
-    }
-  }
-  // found nothing? --> let's 180 (skip original moveSteps)
-  forwardFast(moveSteps - stepsForwardAfterTurn2);
   right90(1);
   for (int i = 0; i < stepsForwardAfterTurn; i++) {
     if (detectLine()) {

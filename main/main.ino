@@ -2,13 +2,18 @@
 // Configured for TRINITY COLLEGE INTERNATIONAL FIRE FIGHTING ROBOT CONTEST 2019
 // Robot: Firex by George School
 
+/*
+after complete 3rd room and 2 90s --> switch following side --> room 1 doors will be out of concern
+if meet dog --> change side then face it like the wall (as planned)
+ */
+
 #define MAX 9999
 
 ////// PINS //////
 const int LEDPin = 13;
 //////////////////
 
-char side = 'L';                          // focusing side of wall following
+char side = 'R';                          // focusing side of wall following
 
 const float minFurther = 0.75;            // minimum distance difference between two sensors that would make the robot readjust itself
 const float minWalkable = 15;             // minimum distance needed in front of the bot for it to walk forward (wall detection)
@@ -26,6 +31,8 @@ const float botWidth = 18;
 int tick;
 float lastSense = 15;                     // last sensed distance to the following wall
 int lastRoomTick = -MAX;
+int roomEntered;
+int turnsAfterRoom3;
 
 void setup() {
   Serial.begin(9600);                     // Open the serial port
@@ -59,6 +66,11 @@ void loop() {
   s2 = getRangeFrontLow();
   s3 = getRangeFrontLow();
   rangeFrontLow = selectRange(s1, s2, s3);
+
+  if(roomEntered >= 3 && turnsAfterRoom3 >= 2){
+    turnsAfterRoom3 = -MAX;
+    side = 'L';
+  }
   if (side == 'R') {
     float rangeRightFront = 0;
     float rangeRightRear = 0;  
@@ -94,6 +106,7 @@ void loop() {
       lastSense = doorWidth - (lastSense + botWidth);
       digitalWrite(LEDPin, LOW);
       lastRoomTick = tick;
+      roomEntered++;
     }
 
     // IF DETECTS THE WALL
@@ -105,7 +118,10 @@ void loop() {
     // IF SIDE-FRONT SENSOR IS FAR
     else if (isFar(rangeRightFront)) {
       // SHARP 90 DEG TURN
-      right90Ex(1, (tick-lastRoomTick == 1 || isFar(rangeRightRear)));
+      right90Ex(1, (tick-lastRoomTick == 1 || isFar(rangeRightRear)));        // includes stick
+      if(roomEntered >= 3){
+        turnsAfterRoom3++;
+      }
     }
 
 
@@ -173,6 +189,7 @@ void loop() {
       lastSense = doorWidth - (lastSense + botWidth);
       digitalWrite(LEDPin, LOW);
       lastRoomTick = tick;
+      roomEntered++;
     }
 
     else if (!isFarIR(rangeFrontLow) && rangeFrontLow < minWalkable){
