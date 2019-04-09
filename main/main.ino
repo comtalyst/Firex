@@ -49,7 +49,7 @@ void setup() {
 
 void loop() {
   //debugKeepMoving();
-  debugCheckSensors();
+  //debugCheckSensors();
   //debugCheckIRLine();
 
   float rangeFrontLow = 0;
@@ -104,7 +104,7 @@ void loop() {
     // IF SIDE-FRONT SENSOR IS FAR
     else if (isFar(rangeRightFront)) {
       // SHARP 90 DEG TURN
-      right90Ex(1, tick-lastRoomTick == 1);
+      right90Ex(1, (tick-lastRoomTick == 1 || isFar(rangeRightRear)));
     }
 
 
@@ -179,7 +179,7 @@ void loop() {
     }
 
     else if (isFar(rangeLeftFront)) {
-      left90Ex(1, tick-lastRoomTick == 1);
+      left90Ex(1, (tick-lastRoomTick == 1 || isFar(rangeLeftRear)));
     }
 
     else if (!isFar(rangeLeftRear) && rangeLeftFront - rangeLeftRear >= minFurther) {
