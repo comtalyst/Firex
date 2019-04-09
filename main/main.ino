@@ -17,7 +17,7 @@ const float minWalkable = 15;             // minimum distance needed in front of
 const float minTooFar = 25;               // (UNUSED) minimum distance difference between two sensors that would make the robot comes closer to the wall
 const float maxTooClose = 5;              // (UNUSED) minimum distance difference between two sensors that would make the robot moves away from the wall
 
-const int roomEnterSteps = 10;            // steps the bot should take after entering/exiting the room
+const int roomEnterSteps = 60;            // steps the bot should take after entering/exiting the room
 
 const float stepsPerCm = 100.0 / 32.5;    // 100 steps is 32.5 cm
 const float doorWidth = 50;
@@ -35,6 +35,7 @@ void setup() {
   readySonic();
   readyIRL();
   readyIR();
+  // MICROPHONE LISTENER HERE (IAN'S)
   for (int i = 0; i < 10; i++) {          // prevent sensor's unfinished initialization
     getRangeRightFront();
     getRangeRightRear();
@@ -82,7 +83,7 @@ void loop() {
       alignBot();
       forwardFast(roomEnterSteps);
 
-      // THESE ARE WIP
+      // THESE ARE WIP (ANDREW'S)
       // the bot is in the room and facing forward at this point
       robotStop(20);
       // search for candle
@@ -112,7 +113,7 @@ void loop() {
     else if (!isFar(rangeRightRear) && rangeRightFront - rangeRightRear >= minFurther) {  // since this if(), rangeRightFront is conditionally guaranteed not far
       // TURN RIGHT SLIGHTLY
       rightSlightly(1);
-      forwardSlightly(1);
+      forwardSlightly(2);
     }
     
     // IF SIDE-REAR SENSOR IS SIGNIFICANTLY FURTHER THAN SIDE-FRONT SENSOR
@@ -163,7 +164,7 @@ void loop() {
       alignBot();
       forwardFast(roomEnterSteps);
 
-      // THESE ARE WIP
+      // THESE ARE WIP (ANDREW'S)
       robotStop(20);
       // search for candle
       left90(2);
@@ -184,7 +185,7 @@ void loop() {
 
     else if (!isFar(rangeLeftRear) && rangeLeftFront - rangeLeftRear >= minFurther) {
       leftSlightly(1);
-      forwardSlightly(1);
+      forwardSlightly(2);
     }
     
     else if (rangeLeftRear - rangeLeftFront >= minFurther) {
