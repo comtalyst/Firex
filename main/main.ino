@@ -17,7 +17,8 @@ char side = 'R';                          // focusing side of wall following
 
 const float minFurther = 0.75;            // minimum distance difference between two sensors that would make the robot readjust itself
 const float minWalkable = 15;             // minimum distance needed in front of the bot for it to walk forward (wall detection)
-
+const float minDiffIsDog = -8.2;          // range of distance difference between two high-low front sensors to mark the obstacle as the dog
+const float maxDiffIsDog = -4.4;          // these are calibrated, for robin's maze follower prototype
 
 const float minTooFar = 25;               // (UNUSED) minimum distance difference between two sensors that would make the robot comes closer to the wall
 const float maxTooClose = 5;              // (UNUSED) minimum distance difference between two sensors that would make the robot moves away from the wall
@@ -111,8 +112,22 @@ void loop() {
 
     // IF DETECTS THE WALL
     else if (!isFarIR(rangeFrontLow) && rangeFrontLow < minWalkable){
-      // LET THE SENSOR FACE THE WALL
-      left90(1);
+      // IS THIS THE DOG?
+      s1 = getRangeFrontHigh();
+      s2 = getRangeFrontHigh();
+      s3 = getRangeFrontHigh();
+      float rangeFrontHigh = selectRange(s1, s2, s3);
+      if(rangeFrontLow - rangeFrontHigh < minDiffIsDog || rangeFrontLow - rangeFrontHigh > maxDiffIsDog){
+        side = 'L';
+        if(isFar(rangeRightRear)){
+          right90(1);
+        }
+        right90(1);
+      }
+      // JUST A WALL, LET THE SENSOR FACE THE WALL
+      else{
+        left90(1);
+      }
     }
 
     // IF SIDE-FRONT SENSOR IS FAR
@@ -193,7 +208,20 @@ void loop() {
     }
 
     else if (!isFarIR(rangeFrontLow) && rangeFrontLow < minWalkable){
-      right90(1);
+      s1 = getRangeFrontHigh();
+      s2 = getRangeFrontHigh();
+      s3 = getRangeFrontHigh();
+      float rangeFrontHigh = selectRange(s1, s2, s3);
+      if(rangeFrontLow - rangeFrontHigh < minDiffIsDog || rangeFrontLow - rangeFrontHigh > maxDiffIsDog){
+        side = 'R';
+        if(isFar(rangeLeftRear)){
+          left90(1);
+        }
+        left90(1);
+      }
+      else{
+        right90(1);
+      }
     }
 
     else if (isFar(rangeLeftFront)) {
@@ -241,6 +269,7 @@ void debugCheckSensors() {
     float rangeRightFront = 0;
     float rangeRightRear = 0;
     float rangeFrontLow = 0;
+    float rangeFrontHigh = 0;
     float s1, s2, s3;
     s1 = getRangeLeftFront();
     s2 = getRangeLeftFront();
@@ -254,8 +283,12 @@ void debugCheckSensors() {
     s2 = getRangeFrontLow();
     s3 = getRangeFrontLow();
     rangeFrontLow = selectRange(s1, s2, s3);
-    Serial.println(String(rangeRightFront) + ", " + String(rangeRightRear) + ", Diff = " + String(rangeRightFront - rangeRightRear));
-    //Serial.println(getRangeFrontLow());
+    s1 = getRangeFrontHigh();
+    s2 = getRangeFrontHigh();
+    s3 = getRangeFrontHigh();
+    rangeFrontHigh = selectRange(s1, s2, s3);
+    //Serial.println("Side > " + String(rangeRightFront) + ", " + String(rangeRightRear) + ", Diff = " + String(rangeRightFront - rangeRightRear));
+    Serial.println("Front > " + String(rangeFrontLow) + ", " + String(rangeFrontHigh) + ", Diff = " + String(rangeFrontLow - rangeFrontHigh));
     delay(200);
   }
 }

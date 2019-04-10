@@ -6,6 +6,7 @@
 
 ////// PINS //////
 const byte lowIRSensorPin = A7;
+const byte highIRSensorPin = A6;
 /////////////////
 
 void readyIR() {
@@ -17,8 +18,13 @@ float getIRRange(int IRValue) {
   return IRRange;
 }
 
-float getRangeFrontLow() {        // UNFINISHED
+float getRangeFrontLow() {
   float value = analogRead(lowIRSensorPin);
+  return getIRRange(value);
+}
+
+float getRangeFrontHigh() {
+  float value = analogRead(highIRSensorPin);
   return getIRRange(value);
 }
 
