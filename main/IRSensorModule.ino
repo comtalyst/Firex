@@ -4,10 +4,12 @@
 
 #define MAX 9999
 
+/*
 ////// PINS //////
 const byte lowIRSensorPin = A7;
 const byte highIRSensorPin = A6;
 /////////////////
+*/
 
 void readyIR() {
   pinMode(lowIRSensorPin, INPUT);

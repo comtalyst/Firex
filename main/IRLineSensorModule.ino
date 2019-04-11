@@ -2,11 +2,12 @@
 // Configured for TRINITY COLLEGE INTERNATIONAL FIRE FIGHTING ROBOT CONTEST 2019
 // Robot: Firex by George School
 
+/*
 ////// PINS //////
 const byte leftIRLineSensorPin = A9;
 const byte rightIRLineSensorPin = A8;
 /////////////////
-
+*/
 const int IRLMaxWhite = 300;          // maximum sensor value that is considered white tape
 
 void readyIRL() {

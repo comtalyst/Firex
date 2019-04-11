@@ -1,24 +1,59 @@
 // Maze Traversing Module for Firex by Robin_D on 4.8.19
 // Configured for TRINITY COLLEGE INTERNATIONAL FIRE FIGHTING ROBOT CONTEST 2019
 // Robot: Firex by George School
+// Main Frame for the Robot
 
 /*
-after complete 3rd room and 2 90s --> switch following side --> room 1 doors will be out of concern
-if meet dog --> change side then face it like the wall (as planned)
- */
+  after complete 3rd room and 2 90s --> switch following side --> room 1 doors will be out of concern
+  if meet dog --> change side then face it like the wall (as planned)
+*/
 
 #define MAX 9999
 
 ////// PINS //////
-const int LEDPin = 13;
+const byte leftIRLineSensorPin = A9;
+const byte rightIRLineSensorPin = A8;
+const byte lowIRSensorPin = A7;           //For both Robin and Andrew's code
+const byte highIRSensorPin = A6;          //Missing in pinMode, what is the use of this?
+
+const int valvePin = A2;                  //the versa valve pin
+
+const byte rightinfaredsensor = A5;       //For Candle Detection
+const byte leftinfaredsensor = A4;        //For Candle Detection
+const byte midinfaredsensor = A3;         //For Candle Detection
+
+const int AUDIO_INPUT_PIN = A10;          // Input ADC pin for audio data.  Connect OUT pin of mic to any teensy analog pin 
+                                          // and change AUDIO_INPUT_PIN to that pin
+
+const int LEDPin = 13;                    //Onboard LED Pin
+const int leftServoPin = 11;
+const int rightServoPin = 12;
+
+const byte rightFrontEchoPin = 6;
+const byte rightFrontTrigPin = 5;
+const byte rightRearEchoPin = 10;
+const byte rightRearTrigPin = 9;
+const byte leftFrontEchoPin = 4;
+const byte leftFrontTrigPin = 3;
+const byte leftRearEchoPin = 8;
+const byte leftRearTrigPin = 7;
+
+const int clawServoPin = 14;               // servo pin for LEFT wheel (THIS IS CHANGED TO 14) (USING BIGGER BOARDS)
+
+const int REDPin = 0;                      //LED Breaker Board
+const int BLUEPin = 2;                     //LED Breaker Board
 //////////////////
 
+/////// Robin's Constant and Variables //////////
 char side = 'R';                          // focusing side of wall following
 
+const float minFar = 40;                  // minimum distance from sensor that would be considered far
+
 const float minFurther = 0.75;            // minimum distance difference between two sensors that would make the robot readjust itself
+const float minVeryFurther = 1.5;
 const float minWalkable = 15;             // minimum distance needed in front of the bot for it to walk forward (wall detection)
 const float minDiffIsDog = -8.2;          // range of distance difference between two high-low front sensors to mark the obstacle as the dog
-const float maxDiffIsDog = -4.4;          // these are calibrated, for robin's maze follower prototype
+const float maxDiffIsDog = 0;          // these are calibrated, for robin's maze follower prototype
 
 const float minTooFar = 25;               // (UNUSED) minimum distance difference between two sensors that would make the robot comes closer to the wall
 const float maxTooClose = 5;              // (UNUSED) minimum distance difference between two sensors that would make the robot moves away from the wall
@@ -35,15 +70,85 @@ int lastRoomTick = -MAX;
 int roomEntered;
 int turnsAfterRoom3;
 
+/////////////////////////////////////////
+
+
+///////Sam's Constant and Variables//////////
+
+const int clawPWOpen = 1400;    //sets the pulse width for opening the claw
+const int clawPWClose = 2000;   //sets the pulse width for closing the claw
+int i;    //a counting for loop integer
+const int call = 0;  //the beginning number for the for loop of the counting cycle
+int callcounter;    //ammount of times that the robot goes through one cycle
+int numOpenSteps;   //number of steps to open claw
+int numCloseSteps;    //number of steps to close claw
+
+///////////////////////////////////////////////////////////
+
+///////Ian's Constant and Variables//////////
+
+const int ANALOG_READ_RESOLUTION = 10; // Bits of resolution for the ADC.
+const int ANALOG_READ_AVERAGING = 16;  // Number of samples to average with each ADC reading.
+int SAMPLE_RATE_HZ = 9000;  
+float TONE_THRESHOLD_DB = 45.0;        // Threshold (in decibels) each tone must be above other frequencies to count.
+const int FFT_SIZE = 256;              // Size of the FFT.  Realistically can only be at most 256
+                                       // without running out of memory for buffers and other state.
+///////////////////////////////////////////////////////////
+
+///////Andrew's Constant and Variables//////////
+
+int rightIRvalue;
+int leftIRvalue;
+int midIRvalue;
+int botIRvalue;
+int rightline;
+int leftline;
+
+boolean IfFire = false;
+
+////////////////////////////////////////////////////////////
+
 void setup() {
   Serial.begin(9600);                     // Open the serial port
   delay(100);
+
+  ////pinMode OUTPUT////  
   pinMode(LEDPin, OUTPUT);                // onboard LED
-  readyServo();
+  
+  pinMode(leftIRLineSensorPin, INPUT);
+  pinMode(rightIRLineSensorPin, INPUT);
+  pinMode(lowIRSensorPin, INPUT);
+  pinMode(highIRSensorPin, INPUT);
+
+  pinMode(rightFrontTrigPin, OUTPUT);
+  pinMode(rightFrontEchoPin, INPUT);
+  pinMode(rightRearTrigPin, OUTPUT);
+  pinMode(rightRearEchoPin, INPUT);
+  pinMode(leftFrontTrigPin, OUTPUT);
+  pinMode(leftFrontEchoPin, INPUT);
+  pinMode(leftRearTrigPin, OUTPUT);
+  pinMode(leftRearEchoPin, INPUT);
+
+  pinMode(leftServoPin, OUTPUT);
+  pinMode(rightServoPin, OUTPUT);
+
+/*
+  pinMode(clawServoPin, OUTPUT);
+  pinMode(valvePin, OUTPUT);
+
+  pinMode (rightinfaredsensor, INPUT);
+  pinMode (leftinfaredsensor, INPUT);
+  pinMode (midinfaredsensor, INPUT);
+*/  
+  //////////////////////////////////////////////////////////////
+
+  /*readyServo();
   readySonic();
   readyIRL();
-  readyIR();
-  // MICROPHONE LISTENER HERE (IAN'S)
+  readyIR();*/
+
+  //microphone();
+
   for (int i = 0; i < 10; i++) {          // prevent sensor's unfinished initialization
     getRangeRightFront();
     getRangeRightRear();
@@ -68,13 +173,13 @@ void loop() {
   s3 = getRangeFrontLow();
   rangeFrontLow = selectRange(s1, s2, s3);
 
-  if(roomEntered >= 3 && turnsAfterRoom3 >= 2){
+  if (roomEntered >= 3 && turnsAfterRoom3 >= 2) {
     turnsAfterRoom3 = -MAX;
     side = 'L';
   }
   if (side == 'R') {
     float rangeRightFront = 0;
-    float rangeRightRear = 0;  
+    float rangeRightRear = 0;
     s1 = getRangeRightFront();
     s2 = getRangeRightFront();
     s3 = getRangeRightFront();
@@ -96,10 +201,9 @@ void loop() {
       alignBot();
       forwardFast(roomEnterSteps);
 
-      // THESE ARE WIP (ANDREW'S)
       // the bot is in the room and facing forward at this point
       robotStop(20);
-      // search for candle
+      //senseandmove();                                             ////Andrew's Code called here
       right90(2);
       // the bot has to face the exit at this point
 
@@ -111,21 +215,21 @@ void loop() {
     }
 
     // IF DETECTS THE WALL
-    else if (!isFarIR(rangeFrontLow) && rangeFrontLow < minWalkable){
+    else if (!isFarIR(rangeFrontLow) && rangeFrontLow < minWalkable) {
       // IS THIS THE DOG?
       s1 = getRangeFrontHigh();
       s2 = getRangeFrontHigh();
       s3 = getRangeFrontHigh();
       float rangeFrontHigh = selectRange(s1, s2, s3);
-      if(rangeFrontLow - rangeFrontHigh < minDiffIsDog || rangeFrontLow - rangeFrontHigh > maxDiffIsDog){
+      if (rangeFrontLow - rangeFrontHigh < minDiffIsDog || rangeFrontLow - rangeFrontHigh > maxDiffIsDog) {
         side = 'L';
-        if(isFar(rangeRightRear)){
+        if (isFar(rangeRightRear)) {
           right90(1);
         }
         right90(1);
       }
       // JUST A WALL, LET THE SENSOR FACE THE WALL
-      else{
+      else {
         left90(1);
       }
     }
@@ -133,8 +237,8 @@ void loop() {
     // IF SIDE-FRONT SENSOR IS FAR
     else if (isFar(rangeRightFront)) {
       // SHARP 90 DEG TURN
-      right90Ex(1, (tick-lastRoomTick == 1 || isFar(rangeRightRear)));        // includes stick
-      if(roomEntered >= 3){
+      right90Ex(1, (tick - lastRoomTick == 1 || isFar(rangeRightRear)));      // includes stick
+      if (roomEntered >= 3) {
         turnsAfterRoom3++;
       }
     }
@@ -144,9 +248,9 @@ void loop() {
     else if (!isFar(rangeRightRear) && rangeRightFront - rangeRightRear >= minFurther) {  // since this if(), rangeRightFront is conditionally guaranteed not far
       // TURN RIGHT SLIGHTLY
       rightSlightly(1);
-      forwardSlightly(2);
+      forwardSlightly(3 - (rangeRightFront - rangeRightRear >= minVeryFurther)*2);
     }
-    
+
     // IF SIDE-REAR SENSOR IS SIGNIFICANTLY FURTHER THAN SIDE-FRONT SENSOR
     else if (rangeRightRear - rangeRightFront >= minFurther) {                            // rangeRightRear must not too far too (auto detect)
       // TURN LEFT SLIGHTLY
@@ -155,7 +259,7 @@ void loop() {
     }
 
     /*// IF TOO FAR OR TOO CLOSE
-    else if (hzPosBad(rangeRightFront)) {
+      else if (hzPosBad(rangeRightFront)) {
       if (hzPosBad(rangeRightFront) == 1) {
         right90(1);
         forwardFast((int)(stepsPerCm * (rangeRightFront - (minTooFar - maxTooClose) / 2.0)));
@@ -166,8 +270,8 @@ void loop() {
         forwardFast((int)(stepsPerCm * ((minTooFar - maxTooClose) / 2.0 - rangeRightFront)));
         right90(1);
       }
-    }*/
-    
+      }*/
+
     // IT CAN NOW MOVES FORWARD
     else {
       // FORWARD SLIGHTLY
@@ -176,7 +280,7 @@ void loop() {
   }
   else if (side == 'L') {
     float rangeLeftFront = 0;
-    float rangeLeftRear = 0;  
+    float rangeLeftRear = 0;
     s1 = getRangeLeftFront();
     s2 = getRangeLeftFront();
     s3 = getRangeLeftFront();
@@ -195,9 +299,8 @@ void loop() {
       alignBot();
       forwardFast(roomEnterSteps);
 
-      // THESE ARE WIP (ANDREW'S)
       robotStop(20);
-      // search for candle
+      //senseandmove();
       left90(2);
 
       forwardFast(roomEnterSteps);
@@ -207,37 +310,37 @@ void loop() {
       roomEntered++;
     }
 
-    else if (!isFarIR(rangeFrontLow) && rangeFrontLow < minWalkable){
+    else if (!isFarIR(rangeFrontLow) && rangeFrontLow < minWalkable) {
       s1 = getRangeFrontHigh();
       s2 = getRangeFrontHigh();
       s3 = getRangeFrontHigh();
       float rangeFrontHigh = selectRange(s1, s2, s3);
-      if(rangeFrontLow - rangeFrontHigh < minDiffIsDog || rangeFrontLow - rangeFrontHigh > maxDiffIsDog){
+      if (rangeFrontLow - rangeFrontHigh < minDiffIsDog || rangeFrontLow - rangeFrontHigh > maxDiffIsDog) {
         side = 'R';
-        if(isFar(rangeLeftRear)){
+        if (isFar(rangeLeftRear)) {
           left90(1);
         }
         left90(1);
       }
-      else{
+      else {
         right90(1);
       }
     }
 
     else if (isFar(rangeLeftFront)) {
-      left90Ex(1, (tick-lastRoomTick == 1 || isFar(rangeLeftRear)));
+      left90Ex(1, (tick - lastRoomTick == 1 || isFar(rangeLeftRear)));
     }
 
     else if (!isFar(rangeLeftRear) && rangeLeftFront - rangeLeftRear >= minFurther) {
       leftSlightly(1);
-      forwardSlightly(2);
+      forwardSlightly(3 - (rangeLeftFront - rangeLeftRear >= minVeryFurther)*2);
     }
-    
+
     else if (rangeLeftRear - rangeLeftFront >= minFurther) {
       rightSlightly(1);
       forwardSlightly(1);
     }
-    
+
     else {
       forwardSlightly(1);
     }
@@ -247,7 +350,7 @@ void loop() {
 
 
 /*int hzPosBad(float range) {                   // this will be unexpectedly triggered at the corner (unreporteds)
-  return 0;                                   
+  return 0;
   if (range <= maxTooClose) {
     return -1;
   }
@@ -257,7 +360,7 @@ void loop() {
   else {
     return 0;
   }
-}*/
+  }*/
 
 void debugKeepMoving() {
   while (true) {
