@@ -16,9 +16,15 @@ void readyIRL() {
 }
 
 bool detectLine() {                   // is any of the sensors detect the tape?
+  if(tick < minTickRoomEnabled){
+    return false;
+  }
   int leftValue = analogRead(leftIRLineSensorPin);
   int rightValue = analogRead(rightIRLineSensorPin);
-  if (leftValue <= IRLMaxWhite || rightValue <= IRLMaxWhite) {
+  if(changeYet && (!isFar(getRangeLeftRear()) || getRangeLeftRear() >= minLeftRearOKRoom4)){               // special case for room #4 to prevent circle at starting point
+    return false;
+  }
+  else if (leftValue <= IRLMaxWhite || rightValue <= IRLMaxWhite) {
     return true;
   }
   return false;

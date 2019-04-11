@@ -50,10 +50,12 @@ char side = 'R';                          // focusing side of wall following
 const float minFar = 40;                  // minimum distance from sensor that would be considered far
 
 const float minFurther = 0.75;            // minimum distance difference between two sensors that would make the robot readjust itself
-const float minVeryFurther = 1.5;
+const float minVeryFurther = 3;
 const float minWalkable = 15;             // minimum distance needed in front of the bot for it to walk forward (wall detection)
 const float minDiffIsDog = -8.2;          // range of distance difference between two high-low front sensors to mark the obstacle as the dog
-const float maxDiffIsDog = 0;          // these are calibrated, for robin's maze follower prototype
+const float maxDiffIsDog = 0.3;          // these are calibrated, for robin's maze follower prototype
+const int minTickRoomEnabled = 100;
+const int minLeftRearOKRoom4 = 28;
 
 const float minTooFar = 25;               // (UNUSED) minimum distance difference between two sensors that would make the robot comes closer to the wall
 const float maxTooClose = 5;              // (UNUSED) minimum distance difference between two sensors that would make the robot moves away from the wall
@@ -69,6 +71,8 @@ float lastSense = 15;                     // last sensed distance to the followi
 int lastRoomTick = -MAX;
 int roomEntered;
 int turnsAfterRoom3;
+bool changeYet = false;
+bool foundDog = false;
 
 /////////////////////////////////////////
 
@@ -173,8 +177,8 @@ void loop() {
   s3 = getRangeFrontLow();
   rangeFrontLow = selectRange(s1, s2, s3);
 
-  if (roomEntered >= 3 && turnsAfterRoom3 >= 2) {
-    turnsAfterRoom3 = -MAX;
+  if (!changeYet && roomEntered >= 3 && turnsAfterRoom3 >= 2) {
+    changeYet = true;
     side = 'L';
   }
   if (side == 'R') {
@@ -222,11 +226,11 @@ void loop() {
       s3 = getRangeFrontHigh();
       float rangeFrontHigh = selectRange(s1, s2, s3);
       if (rangeFrontLow - rangeFrontHigh < minDiffIsDog || rangeFrontLow - rangeFrontHigh > maxDiffIsDog) {
-        side = 'L';
-        if (isFar(rangeRightRear)) {
-          right90(1);
+        if(!foundDog){
+          side = 'L';
         }
-        right90(1);
+        right90(2);
+        foundDog = true;
       }
       // JUST A WALL, LET THE SENSOR FACE THE WALL
       else {
@@ -316,11 +320,11 @@ void loop() {
       s3 = getRangeFrontHigh();
       float rangeFrontHigh = selectRange(s1, s2, s3);
       if (rangeFrontLow - rangeFrontHigh < minDiffIsDog || rangeFrontLow - rangeFrontHigh > maxDiffIsDog) {
-        side = 'R';
-        if (isFar(rangeLeftRear)) {
-          left90(1);
+        if(!foundDog){
+          side = 'R';
         }
-        left90(1);
+        left90(2);
+        foundDog = true;
       }
       else {
         right90(1);

@@ -9,7 +9,7 @@ const int rightServoPin = 12;
 */
 
 // Left Servo Pulse Width Constants
-const int left_forward_fast = 1850;       // CCW Fast
+const int left_forward_fast = 1840;       // CCW Fast
 const int left_forward_slow = 1600;       // CCW Slow
 const int left_stop = 1500;               // Center position
 const int left_reverse_slow = 1400;       // CW Slow
@@ -215,14 +215,14 @@ void createPulse(byte servoPin, int pulseWidth) {
 
 const int turnSteps = 1;         // steps taken per turn action
 const int forwardSteps = 1;      // steps taken per walk action
-const int right90Steps = 24;
+const int right90Steps = 25;
 const int left90Steps = 24;
 
 const float firstSensorTailDistance = 15.0;         // distance between front sensor to robot's tail
 const float firstSensorDoorwayDistance = 3.0;
 const int stepsForwardAfterTurn = 25 * stepsPerCm;  // measure from distance between the bot at door's end to another, min steps to confirm the "stick" (180 turn)
 const int stepsForwardAfterTurn2 = 13;              // steps forward the robot will take after side90Ex() has been suspended to prevent false isFar() or stick
-const int stepsAwayBefore90 = 5;                    // initialize turn(this) in opposite direction before do the sharp turn to prevent crashing
+const int stepsAwayBefore90 = 7;                    // initialize turn(this) in opposite direction before do the sharp turn to prevent crashing
 
 void readyServo() {
   pinMode(leftServoPin, OUTPUT);
