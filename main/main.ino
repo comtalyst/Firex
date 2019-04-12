@@ -53,7 +53,7 @@ const float minFurther = 0.75;            // minimum distance difference between
 const float minVeryFurther = 3;
 const float minWalkable = 15;             // minimum distance needed in front of the bot for it to walk forward (wall detection)
 const float minDiffIsDog = -8.2;          // range of distance difference between two high-low front sensors to mark the obstacle as the dog
-const float maxDiffIsDog = 0.3;          // these are calibrated, for robin's maze follower prototype
+const float maxDiffIsDog = 0.3;           // these are calibrated, for robin's maze follower prototype
 const int minTickRoomEnabled = 100;
 const int minLeftRearOKRoom4 = 28;
 
@@ -61,6 +61,7 @@ const float minTooFar = 25;               // (UNUSED) minimum distance differenc
 const float maxTooClose = 5;              // (UNUSED) minimum distance difference between two sensors that would make the robot moves away from the wall
 
 const int roomEnterSteps = 60;            // steps the bot should take after entering/exiting the room
+const int roomEndSteps = 20;              // steps the bot should take to back into the circle
 
 const float stepsPerCm = 100.0 / 32.5;    // 100 steps is 32.5 cm
 const float doorWidth = 50;
@@ -73,6 +74,8 @@ int roomEntered;
 int turnsAfterRoom3;
 bool changeYet = false;
 bool foundDog = false;
+bool fireExtinguished = false;
+int roomsAfterFire;
 
 /////////////////////////////////////////
 
@@ -203,11 +206,31 @@ void loop() {
     if (detectLine()) {
       digitalWrite(LEDPin, HIGH);
       alignBot();
+      if(fireExtinguished){
+        if(roomsAfterFire <= 0){
+          forwardFast(roomEndSteps);
+          while(true) robotStop(100);                               // done!
+        }
+        else{
+          roomsAfterFire--;
+        }
+      }
       forwardFast(roomEnterSteps);
 
       // the bot is in the room and facing forward at this point
       robotStop(20);
-      //senseandmove();                                             ////Andrew's Code called here
+      if(!fireExtinguished){
+        fireExtinguished = senseandmove();                          // Andrew's
+        if(fireExtinguished){
+          side = 'L';
+          foundDog = true;                                          // prevent any changes --> this proved to be work in all rooms (standard return in 1,2,3 and greedy short return in 4)
+          changeYet = true;
+          roomsAfterFire = roomEntered;
+          if(roomsAfterFire == 3){
+            roomsAfterFire = 0;
+          }
+        }
+      }      
       right90(2);
       // the bot has to face the exit at this point
 
@@ -225,7 +248,7 @@ void loop() {
       s2 = getRangeFrontHigh();
       s3 = getRangeFrontHigh();
       float rangeFrontHigh = selectRange(s1, s2, s3);
-      if (rangeFrontLow - rangeFrontHigh < minDiffIsDog || rangeFrontLow - rangeFrontHigh > maxDiffIsDog) {
+      if (roomEntered >= 3 && (rangeFrontLow - rangeFrontHigh < minDiffIsDog || rangeFrontLow - rangeFrontHigh > maxDiffIsDog)) {
         if(!foundDog){
           side = 'L';
         }
@@ -301,10 +324,30 @@ void loop() {
     if (detectLine()) {
       digitalWrite(LEDPin, HIGH);
       alignBot();
+      if(fireExtinguished){
+        if(roomsAfterFire <= 0){
+          forwardFast(roomEndSteps);
+          while(true) robotStop(100);                               // done!
+        }
+        else{
+          roomsAfterFire--;
+        }
+      }
       forwardFast(roomEnterSteps);
 
       robotStop(20);
-      //senseandmove();
+      if(!fireExtinguished){
+        fireExtinguished = senseandmove();
+        if(fireExtinguished){
+          side = 'R';
+          foundDog = true;
+          changeYet = true;
+          roomsAfterFire = roomEntered;
+          if(roomsAfterFire == 3){
+            roomsAfterFire = 0;
+          }
+        }
+      }
       left90(2);
 
       forwardFast(roomEnterSteps);
@@ -319,7 +362,7 @@ void loop() {
       s2 = getRangeFrontHigh();
       s3 = getRangeFrontHigh();
       float rangeFrontHigh = selectRange(s1, s2, s3);
-      if (rangeFrontLow - rangeFrontHigh < minDiffIsDog || rangeFrontLow - rangeFrontHigh > maxDiffIsDog) {
+      if (roomEntered >= 3 && (rangeFrontLow - rangeFrontHigh < minDiffIsDog || rangeFrontLow - rangeFrontHigh > maxDiffIsDog)) {
         if(!foundDog){
           side = 'R';
         }

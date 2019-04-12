@@ -65,7 +65,7 @@ void checkline() {
   leftline = analogRead (leftIRLineSensorPin);          //Modified to Robin's code
 }
 
-void senseandmove () {
+bools senseandmove () {
   for (int x = 0; x < 379; x++) {
     checkfire();
     if (rightIRvalue < 1023 && leftIRvalue < 1023 && midIRvalue < 1023) {
@@ -77,9 +77,7 @@ void senseandmove () {
   }
   if (IfFire == true) {
     startmoving();                            //Calling to the start moving module
-    while(true){
-      robotStop(100);
-    }
+    return true;
   }
   else {
     delay (500);
@@ -87,6 +85,7 @@ void senseandmove () {
     forwardSlow (200);                         //Move back toward the line    (Need change)
     digitalWrite (BLUEPin, LOW);
     // return to maze following
+    return false;
   }
 }
 

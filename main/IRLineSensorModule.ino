@@ -21,7 +21,7 @@ bool detectLine() {                   // is any of the sensors detect the tape?
   }
   int leftValue = analogRead(leftIRLineSensorPin);
   int rightValue = analogRead(rightIRLineSensorPin);
-  if(changeYet && (!isFar(getRangeLeftRear()) || getRangeLeftRear() >= minLeftRearOKRoom4)){               // special case for room #4 to prevent circle at starting point
+  if(!fireExtinguished && changeYet && (!isFar(getRangeLeftRear()) && getRangeLeftRear() < minLeftRearOKRoom4)){               // special case for room #4 to prevent circle at starting point
     return false;
   }
   else if (leftValue <= IRLMaxWhite || rightValue <= IRLMaxWhite) {
