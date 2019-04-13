@@ -98,9 +98,11 @@ void loop() {
 
 void detectionStory() {
   gointotheroom();
+  
 }
 
 void gointotheroom() {
+//  printSensors();
   turning360();
 }
 
@@ -118,6 +120,7 @@ void checkfire() {
   leftIRvalue = analogRead (leftinfaredsensor);
   midIRvalue = analogRead (midinfaredsensor);
   botIRvalue = analogRead (lowIRSensorPin);
+  Serial.println ("Left Sensor Value = " + String (leftIRvalue) + " Middle Sensor Value = " + String (midIRvalue) + " Right Sensor Value = " + String (rightIRvalue) + " Left Line Value = " + String (leftline) + " Right Line Value = " + String (rightline)+ "Bottom IR Value = " +String (botIRvalue));
 
 }
 
@@ -128,7 +131,7 @@ void checkline() {
 
 void turning360 () {
   int x = 0;
-  for (x; x < 379; x++) {
+  for (x; x < 320; x++) {
     checkfire();
     if (rightIRvalue < 1023 || leftIRvalue < 1023 || midIRvalue < 1023) {
       IfFire = true;
@@ -136,12 +139,15 @@ void turning360 () {
     }
     rightStepSlow();
   }
+  delay(500);
   if (IfFire == true) {
     candleLEDon();
     movingtowardcandle();                            //Calling to the candle moving module
   }
   else {
     //    delay (500);
+    rightSlow(160);
+//    forwardSlow(50);
   }
 }
 
@@ -178,7 +184,7 @@ void turning360version2() {
     reverseFast(50);                //Moving back, ready for RamboRelease();
     IfFire = false;
     int x = 0;
-    for (x; x < 758; x++) {
+    for (x; x < 640; x++) {
       checkfire();
       if (rightIRvalue < 1023 || leftIRvalue < 1023 || midIRvalue < 1023) {
         IfFire = true;
@@ -240,9 +246,6 @@ void movingtowardcandleversion2() {  //Moving toward candle, but RamboRelease
   tonsofCO2();
   }*/
 
-void robincodegotodoor() {
-  while (true);
-}
 
 void candleLEDon() {                         //Turn on LED once candle detected
   digitalWrite(REDPin, HIGH);

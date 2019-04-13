@@ -59,7 +59,7 @@ const int minLeftRearOKRoom4 = 35;
 const float minTooFar = 25;               // (UNUSED) minimum distance difference between two sensors that would make the robot comes closer to the wall
 const float maxTooClose = 5;              // (UNUSED) minimum distance difference between two sensors that would make the robot moves away from the wall
 
-const int roomEnterSteps = 60;            // steps the bot should take after entering/exiting the room
+const int roomEnterSteps = 110;            // steps the bot should take after entering/exiting the room
 const int roomEndSteps = 70;              // steps the bot should take to back into the circle
 
 const float stepsPerCm = 100.0 / 32.5;    // 100 steps is 32.5 cm
@@ -158,7 +158,7 @@ void setup() {
   pinMode (midinfaredsensor, INPUT);
 
   // Ian's Setup:
-  setupMicrophone();
+  setupMicrophone();  // from the microphone module
 
   //////////////////////////////////////////////////////////////
 
@@ -182,6 +182,11 @@ void setup() {
 }
 
 void loop() {
+  /*while(true){
+    debugAllSensors();
+    delay(50);
+  }*/
+  printSensors();
   //debugKeepMoving();
   //debugCheckSensors();
   //debugCheckIRLine();
@@ -535,6 +540,17 @@ void getOutOffRoom() {
   }
   alignBot();
   goingBack = false;
+}
+
+void debugAllSensors(){
+  Serial.println("leftIRLineSensorPin > " + String(analogRead(leftIRLineSensorPin)));
+  Serial.println("rightIRLineSensorPin > " + String(analogRead(rightIRLineSensorPin)));
+  Serial.println("lowIRSensorPin > " + String(analogRead(lowIRSensorPin)));
+  Serial.println("highIRSensorPin > " + String(analogRead(highIRSensorPin)));
+
+  Serial.println("rightinfraredsensor > " + String(analogRead(rightinfaredsensor)));
+  Serial.println("leftinfraredsensor > " + String(analogRead(leftinfaredsensor)));
+  Serial.println("midinfraredsensor > " + String(analogRead(midinfaredsensor)));
 }
 
 /*void debugInRoom() {                        // rightStepSlow = leftSlow(1), calibrated for approx. equal walk

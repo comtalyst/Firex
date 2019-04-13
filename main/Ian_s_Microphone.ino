@@ -35,9 +35,9 @@ void microphone() {
 //      Serial.println("...");
 
       delay(100);
-      Serial.println(count++);
+      Serial.println(count++);      //continuously counting until find the corresponding frequency
 //      Serial.println(getFreq());
-      if ( getFreq() > 3150 && getFreq() < 4300 ) {
+      if ( getFreq() > 3150 && getFreq() < 4300 ) {   // frequency range to activate the robot
         digitalWrite(BLUEPin, HIGH);   // turn the LED on (HIGH is the voltage level)        //Changed from the led to LEDPin
         //        delay(1000);               // wait for a second
         //        digitalWrite(LEDPin, LOW);    // turn the LED off by making the voltage LOW         //Changed from the led to LEDPin
