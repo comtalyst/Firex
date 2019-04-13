@@ -1,7 +1,7 @@
 
 //CO2 release code:
 
-//GLOBALS:  
+//GLOBALS:
 //const int clawPWOpen = 1400;    //sets the pulse width for opening the claw
 //const int clawPWClose = 2000;   //sets the pulse width for closing the claw
 //int i;    //a counting for loop integer
@@ -16,18 +16,18 @@
 //////////////////////////////////////////////////////////////////////////////////////
 
 //CO2 cartridge #1 test: 1200 ms, test #2: 3200 ms
-//Vin 
+//Vin
 
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-/*void setup() {
-  //sets the respective pins to the "OUTPUT" voltage mode:
-  pinMode(clawServoPin, OUTPUT);
-  pinMode(valvePin, OUTPUT);
-  pinMode(LEDPin, OUTPUT);
-  blinkOK(3);                // a diagnostic tool to let user know all is OK
-}*/
+//void setup() {
+//  //sets the respective pins to the "OUTPUT" voltage mode:
+//  pinMode(clawServoPin, OUTPUT);
+//  pinMode(valvePin, OUTPUT);
+//  pinMode(LEDPin, OUTPUT);
+//  blinkOK(3);                // a diagnostic tool to let user know all is OK
+//}
 
 
 
@@ -38,19 +38,25 @@
   //  digitalWrite(A2, LOW);
   //  delay(100);
 
-  //callClaw();
+  // callClaw();
   //clawOpen(20);
   tonsofCO2();
   while (true);
 
-}*/
+  }*/
 
 //////////////////////////////////////////////////////////////////////////////////////
 
 void valveOn() {
   //opens the valve:
   digitalWrite(valvePin, HIGH);
+}
 
+void valveOnStep() {
+  digitalWrite(valvePin, HIGH);
+  delay(50);
+  digitalWrite(valvePin, LOW);
+  delay(50);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -64,22 +70,57 @@ void valveOff() {
 
 void tonsofCO2() {
 
-  numOpenSteps = 20;
-  numCloseSteps = 40;
-  
-  //opens the claw by the input number of steps:
-  clawOpen(numOpenSteps);
+  numOpenSteps = 40;
+  numCloseSteps = 20;
+
+
   //opens up the valve:
   valveOn();
-  //delays by 200 ms
-  delay(200);
+  delay (200);
+  //opens the claw by the input number of steps:
+  clawOpen(numOpenSteps);
+
   //closes the claw for 40 steps
   clawClose(numCloseSteps);
+
+  for (int x = 0 ; x <= 10; x++) {                      //Turns left and right to spray
+    clawCloseStep();
+    leftStepFast();
+  }
+  for (int x = 0; x <= 20; x++) {
+    clawCloseStep();
+    rightStepFast();
+  }
+  for (int x = 0 ; x <= 10; x++) {                      //Turns left and right to spray
+    clawCloseStep();
+    leftStepFast();
+  }
   clawOpen(numOpenSteps);
   //closes the valve:
   valveOff();
- 
 
+}
+
+void RamboRelease() {
+  valveOn();
+  clawOpen(40);
+  clawClose(20);
+  for (int x = 0 ; x <= 5; x++) {     //Turns left and right to spray
+    clawCloseStep();
+    valveOnStep();
+    leftStepFast();
+  }
+  for (int x = 0; x <= 10; x++) {
+    clawCloseStep();
+    valveOnStep();
+    rightStepFast();
+  }
+  for (int x = 0 ; x <= 5; x++) {                      //Turns left and right to spray
+    clawCloseStep();
+    valveOnStep();
+    leftStepFast();
+  }
+  clawOpen(40);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -134,15 +175,24 @@ void createClawPulse(byte servoPin, int pulseWidth) {
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-/*void blinkOK(int numBlinks) {
-  // blink the onboard LED to let the user know the code was properly uploaded
-  for (int i = 0; i < numBlinks; i++) {
-    digitalWrite(LEDPin, HIGH);
-    delay(500);
-    digitalWrite(LEDPin, LOW);
-    delay(500);
-  }
-}*/
+//void blinkOK(int numBlinks) {
+//  // blink the onboard LED to let the user know the code was properly uploaded
+//  for (int i = 0; i < numBlinks; i++) {
+//    digitalWrite(LEDPin, HIGH);
+//    delay(500);
+//    digitalWrite(LEDPin, LOW);
+//    delay(500);
+//  }
+//}
 
 
 //////////////////////////////////////////////////////////////////////////////////////
+
+void release() {
+  valveOn();
+  clawOpen(40);
+  clawClose(400);
+  clawOpen(40);
+  valveOff();
+  while (true);
+}

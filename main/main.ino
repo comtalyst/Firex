@@ -10,7 +10,7 @@
 #define MAX 9999
 
 ////// PINS //////
-const byte leftIRLineSensorPin = A9;
+const byte leftIRLineSensorPin = A9;      
 const byte rightIRLineSensorPin = A8;
 const byte lowIRSensorPin = A7;           //For both Robin and Andrew's code
 const byte highIRSensorPin = A6;          //Missing in pinMode, what is the use of this?
@@ -21,8 +21,8 @@ const byte rightinfaredsensor = A5;       //For Candle Detection
 const byte leftinfaredsensor = A4;        //For Candle Detection
 const byte midinfaredsensor = A3;         //For Candle Detection
 
-const int AUDIO_INPUT_PIN = A19;          // Input ADC pin for audio data.  Connect OUT pin of mic to any teensy analog pin 
-                                          // and change AUDIO_INPUT_PIN to that pin
+//const int AUDIO_INPUT_PIN = A19;          // Input ADC pin for audio data.  Connect OUT pin of mic to any teensy analog pin
+// and change AUDIO_INPUT_PIN to that pin
 
 const int LEDPin = 13;                    //Onboard LED Pin
 const int leftServoPin = 11;
@@ -99,12 +99,14 @@ int numCloseSteps;    //number of steps to close claw
 
 ///////Ian's Constant and Variables//////////
 
-const int ANALOG_READ_RESOLUTION = 10; // Bits of resolution for the ADC.
-const int ANALOG_READ_AVERAGING = 16;  // Number of samples to average with each ADC reading.
-int SAMPLE_RATE_HZ = 9000;  
-float TONE_THRESHOLD_DB = 45.0;        // Threshold (in decibels) each tone must be above other frequencies to count.
-const int FFT_SIZE = 256;              // Size of the FFT.  Realistically can only be at most 256
-                                       // without running out of memory for buffers and other state.
+//const int ANALOG_READ_RESOLUTION = 10; // Bits of resolution for the ADC.
+//const int ANALOG_READ_AVERAGING = 16;  // Number of samples to average with each ADC reading.
+//int SAMPLE_RATE_HZ = 9000;
+//float TONE_THRESHOLD_DB = 45.0;        // Threshold (in decibels) each tone must be above other frequencies to count.
+//const int FFT_SIZE = 256;              // Size of the FFT.  Realistically can only be at most 256
+// without running out of memory for buffers and other state.
+
+
 ///////////////////////////////////////////////////////////
 
 ///////Andrew's Constant and Variables//////////
@@ -124,9 +126,12 @@ void setup() {
   Serial.begin(9600);                     // Open the serial port
   delay(100);
 
-  ////pinMode OUTPUT////  
+  ////pinMode OUTPUT////
   pinMode(LEDPin, OUTPUT);                // onboard LED
-  
+
+  pinMode(REDPin, OUTPUT);
+  pinMode(BLUEPin, OUTPUT);
+
   pinMode(leftIRLineSensorPin, INPUT);
   pinMode(rightIRLineSensorPin, INPUT);
   pinMode(lowIRSensorPin, INPUT);
@@ -144,32 +149,35 @@ void setup() {
   pinMode(leftServoPin, OUTPUT);
   pinMode(rightServoPin, OUTPUT);
 
-/*
+
   pinMode(clawServoPin, OUTPUT);
   pinMode(valvePin, OUTPUT);
 
   pinMode (rightinfaredsensor, INPUT);
   pinMode (leftinfaredsensor, INPUT);
   pinMode (midinfaredsensor, INPUT);
-*/  
+
+  // Ian's Setup:
+  setupMicrophone();
+
   //////////////////////////////////////////////////////////////
 
-  /*readyServo();
-  readySonic();
-  readyIRL();
-  readyIR();*/
+  blinkOK(3);                             // ok now
 
-  //microphone();
+  microphone();
+  /*readyServo();
+    readySonic();
+    readyIRL();
+    readyIR();*/
 
   for (int i = 0; i < 10; i++) {          // prevent sensor's unfinished initialization
     getRangeRightFront();
     getRangeRightRear();
     delay(10);
   }
-  blinkOK(3);                             // ok now
 
   if (isFar(getRangeRightFront())) {      // in case of unfortunate starting directions!
-  //  right90(1);
+    //  right90(1);
   }
 }
 
@@ -177,7 +185,7 @@ void loop() {
   //debugKeepMoving();
   //debugCheckSensors();
   //debugCheckIRLine();
-  debugInRoom();
+  //  debugInRoom();
 
   float rangeFrontLow = 0;
   float s1, s2, s3;
@@ -212,23 +220,23 @@ void loop() {
     if (detectLine()) {
       digitalWrite(LEDPin, HIGH);
       alignBot();
-      if(!stillInRoom){
-        if(fireExtinguished){
-          if(roomsAfterFire <= 0){
+      if (!stillInRoom) {
+        if (fireExtinguished) {
+          if (roomsAfterFire <= 0) {
             forwardFast(roomEndSteps);
-            while(true) robotStop(100);                               // done!
+            while (true) robotStop(100);                              // done!
           }
-          else{
+          else {
             roomsAfterFire--;
           }
         }
         forwardFast(roomEnterSteps);
-  
+
         // the bot is in the room and facing forward at this point
         robotStop(20);
-        if(!fireExtinguished){
-          fireExtinguished = senseandmove();                          // Andrew's
-          if(fireExtinguished){
+        if (!fireExtinguished) {
+          detectionStory();                          // Andrew's
+          if (fireExtinguished) {
             // getOutOffRoom();
             // dumb room outing
             right90(1);
@@ -238,23 +246,23 @@ void loop() {
             foundDog = true;                                          // prevent any changes --> this proved to be work in all rooms (standard return in 1,2,3 and greedy short return in 4)
             changeYet = true;
             roomsAfterFire = roomEntered;
-            if(roomsAfterFire == 3){
+            if (roomsAfterFire == 3) {
               roomsAfterFire = 0;
             }
           }
-        }      
-        else{
+        }
+        else {
           right90(2);
         }
         // the bot has to face the exit at this point
-  
+
         forwardFast(roomEnterSteps);
         lastSense = doorWidth - (lastSense + botWidth);
         digitalWrite(LEDPin, LOW);
         lastRoomTick = tick;
         roomEntered++;
       }
-      else{
+      else {
         stillInRoom = false;
       }
     }
@@ -267,7 +275,7 @@ void loop() {
       s3 = getRangeFrontHigh();
       float rangeFrontHigh = selectRange(s1, s2, s3);
       if (roomEntered >= 3 && (rangeFrontLow - rangeFrontHigh < minDiffIsDog || rangeFrontLow - rangeFrontHigh > maxDiffIsDog)) {
-        if(!foundDog){
+        if (!foundDog) {
           side = 'L';
         }
         right90(2);
@@ -293,7 +301,7 @@ void loop() {
     else if (!isFar(rangeRightRear) && rangeRightFront - rangeRightRear >= minFurther) {  // since this if(), rangeRightFront is conditionally guaranteed not far
       // TURN RIGHT SLIGHTLY
       rightSlightly(1);
-      forwardSlightly(3 - (rangeRightFront - rangeRightRear >= minVeryFurther)*2);
+      forwardSlightly(3 - (rangeRightFront - rangeRightRear >= minVeryFurther) * 2);
     }
 
     // IF SIDE-REAR SENSOR IS SIGNIFICANTLY FURTHER THAN SIDE-FRONT SENSOR
@@ -342,22 +350,20 @@ void loop() {
     if (detectLine()) {
       digitalWrite(LEDPin, HIGH);
       alignBot();
-      if(!stillInRoom){
-        if(fireExtinguished){
-          if(roomsAfterFire <= 0){
+      if (!stillInRoom) {
+        if (fireExtinguished) {
+          if (roomsAfterFire <= 0) {
             forwardFast(roomEndSteps);
-            while(true) robotStop(100);                               // done!
+            while (true) robotStop(100);                              // done!
           }
-          else{
+          else {
             roomsAfterFire--;
           }
         }
         forwardFast(roomEnterSteps);
-  
-        robotStop(20);
-        if(!fireExtinguished){
-          fireExtinguished = senseandmove();
-          if(fireExtinguished){
+        if (!fireExtinguished) {
+          detectionStory();
+          if (fireExtinguished) {
             //getOutOffRoom();
             // dumb room outing
             left90(1);
@@ -367,18 +373,18 @@ void loop() {
             // no need resets because it's short
           }
         }
-        else{
+        else {
           left90(2);
         }
-        
-  
+
+
         forwardFast(roomEnterSteps);
         lastSense = doorWidth - (lastSense + botWidth);
         digitalWrite(LEDPin, LOW);
         lastRoomTick = tick;
         roomEntered++;
       }
-      else{
+      else {
         stillInRoom = false;
       }
     }
@@ -389,7 +395,7 @@ void loop() {
       s3 = getRangeFrontHigh();
       float rangeFrontHigh = selectRange(s1, s2, s3);
       if (roomEntered >= 3 && (rangeFrontLow - rangeFrontHigh < minDiffIsDog || rangeFrontLow - rangeFrontHigh > maxDiffIsDog)) {
-        if(!foundDog){
+        if (!foundDog) {
           side = 'R';
         }
         left90(2);
@@ -406,7 +412,7 @@ void loop() {
 
     else if (!isFar(rangeLeftRear) && rangeLeftFront - rangeLeftRear >= minFurther) {
       leftSlightly(1);
-      forwardSlightly(3 - (rangeLeftFront - rangeLeftRear >= minVeryFurther)*2);
+      forwardSlightly(3 - (rangeLeftFront - rangeLeftRear >= minVeryFurther) * 2);
     }
 
     else if (rangeLeftRear - rangeLeftFront >= minFurther) {
@@ -440,7 +446,7 @@ void debugKeepMoving() {
   while (true) {
     forwardFast(1);
     steps++;
-    if(steps >= 1000){
+    if (steps >= 1000) {
       digitalWrite(LEDPin, HIGH);
     }
   }
@@ -503,7 +509,7 @@ float selectRange(float s1, float s2, float s3) {
   }
 }
 
-void getOutOffRoom(){
+void getOutOffRoom() {
   goingBack = true;
   right90(1);
   robotStop(1);
@@ -523,32 +529,32 @@ void getOutOffRoom(){
       //forwardStepSlow();
       leftSlow(1);
     }
-  }*/
-  while(!detectLine()){
+    }*/
+  while (!detectLine()) {
     forwardSlightly(1);
   }
   alignBot();
   goingBack = false;
 }
 
-void debugInRoom(){                         // rightStepSlow = leftSlow(1), calibrated for approx. equal walk
-  for(i = 1; i <= 500; i++){
+/*void debugInRoom() {                        // rightStepSlow = leftSlow(1), calibrated for approx. equal walk
+  for (i = 1; i <= 500; i++) {
     checkfire();
     checkline();
-    if(i%75 == 0){
+    if (i % 75 == 0) {
       rightStepSlow();
       track[trackSize++] = 'R';
     }
     /*else if(i%15 == 0){
       leftSlow(1);
       track[trackSize++] = 'L';
-    }*/
-    else{
+      }
+    else {
       forwardStepFast();
       movingtoward();
       track[trackSize++] = 'F';
     }
   }
   getOutOffRoom();
-  while(true);
-}
+  while (true);
+  }*/

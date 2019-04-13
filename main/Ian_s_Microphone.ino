@@ -26,25 +26,29 @@
 //
 void microphone() {
 
+  Serial.println("Mic!");
   if (samplingIsDone()) {
-    Serial.println(getFreq());
+
     delay(100);
     int count = 0;
     while (true) {
+//      Serial.println("...");
+
       delay(100);
       Serial.println(count++);
+//      Serial.println(getFreq());
       if ( getFreq() > 3150 && getFreq() < 4300 ) {
-        digitalWrite(LEDPin, HIGH);   // turn the LED on (HIGH is the voltage level)        //Changed from the led to LEDPin
-        delay(1000);               // wait for a second
-        digitalWrite(LEDPin, LOW);    // turn the LED off by making the voltage LOW         //Changed from the led to LEDPin
-        delay(1000);
-        //        Serial.println("good");
+        digitalWrite(BLUEPin, HIGH);   // turn the LED on (HIGH is the voltage level)        //Changed from the led to LEDPin
+        //        delay(1000);               // wait for a second
+        //        digitalWrite(LEDPin, LOW);    // turn the LED off by making the voltage LOW         //Changed from the led to LEDPin
+        //        delay(1000);
+                Serial.println("good");
         break;
         // wait for a second
         // heard the sound --> turn the robot on
       }
 
     }
-    //    Serial.println (" I broke the loop");
+        Serial.println (" I broke the loop");
   }
 }

@@ -7,14 +7,14 @@
 #include <arm_math.h>
 
 //constants 
-//const int AUDIO_INPUT_PIN = A9;        // Input ADC pin for audio data.  Connect OUT pin of mic to any teensy analog pin 
-//                                       // and change AUDIO_INPUT_PIN to that pin
-//const int ANALOG_READ_RESOLUTION = 10; // Bits of resolution for the ADC.
-//const int ANALOG_READ_AVERAGING = 16;  // Number of samples to average with each ADC reading.
-//int SAMPLE_RATE_HZ = 9000;  
-//float TONE_THRESHOLD_DB = 45.0;        // Threshold (in decibels) each tone must be above other frequencies to count.
-//const int FFT_SIZE = 256;              // Size of the FFT.  Realistically can only be at most 256
-//                                       // without running out of memory for buffers and other state.
+const int AUDIO_INPUT_PIN = A19;        // Input ADC pin for audio data.  Connect OUT pin of mic to any teensy analog pin 
+                                       // and change AUDIO_INPUT_PIN to that pin
+const int ANALOG_READ_RESOLUTION = 10; // Bits of resolution for the ADC.
+const int ANALOG_READ_AVERAGING = 16;  // Number of samples to average with each ADC reading.
+int SAMPLE_RATE_HZ = 9000;  
+float TONE_THRESHOLD_DB = 45.0;        // Threshold (in decibels) each tone must be above other frequencies to count.
+const int FFT_SIZE = 256;              // Size of the FFT.  Realistically can only be at most 256
+                                       // without running out of memory for buffers and other state.
 
 
 ////////////////////////////////////////////////////////////////////////////////
