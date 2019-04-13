@@ -59,7 +59,7 @@ const int minLeftRearOKRoom4 = 35;
 const float minTooFar = 25;               // (UNUSED) minimum distance difference between two sensors that would make the robot comes closer to the wall
 const float maxTooClose = 5;              // (UNUSED) minimum distance difference between two sensors that would make the robot moves away from the wall
 
-const int roomEnterSteps = 110;            // steps the bot should take after entering/exiting the room
+const int roomEnterSteps = 220;            // steps the bot should take after entering/exiting the room
 const int roomEndSteps = 70;              // steps the bot should take to back into the circle
 
 const float stepsPerCm = 100.0 / 32.5;    // 100 steps is 32.5 cm
@@ -260,8 +260,12 @@ void loop() {
           right90(2);
         }
         // the bot has to face the exit at this point
-
-        forwardFast(roomEnterSteps);
+        stillInRoom = true;
+        while(!detectLine()){           // should be around roomEnterSteps times
+          forwardFast(1);
+        }
+        stillInRoom = false;
+        alignBot();
         lastSense = doorWidth - (lastSense + botWidth);
         digitalWrite(LEDPin, LOW);
         lastRoomTick = tick;
@@ -381,9 +385,12 @@ void loop() {
         else {
           left90(2);
         }
-
-
-        forwardFast(roomEnterSteps);
+        stillInRoom = true;
+        while(!detectLine()){
+          forwardFast(1);
+        }
+        stillInRoom = false;
+        alignBot();
         lastSense = doorWidth - (lastSense + botWidth);
         digitalWrite(LEDPin, LOW);
         lastRoomTick = tick;

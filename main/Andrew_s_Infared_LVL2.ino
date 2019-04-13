@@ -166,10 +166,10 @@ void movingtowardcandle() {
       }
     }
     else if (midIRvalue > rightIRvalue) {
-      rightStepSlow();
+      rightSlow(1);
     }
     else if (midIRvalue > leftIRvalue) {
-      leftStepSlow();
+      leftSlow(1);
     }
   }
   // After stopping in front of the candle, start extinguishing
@@ -195,9 +195,6 @@ void turning360version2() {
     if (IfFire == true) {
       candleLEDon();
       movingtowardcandleversion2();                            //Calling to the candle moving module
-    }
-    else {
-      //    delay (500);
       candleLEDoff();
       fireExtinguished = true;
     }
@@ -222,7 +219,7 @@ void movingtowardcandleversion2() {  //Moving toward candle, but RamboRelease
       rightStepSlow();
     }
     else if (midIRvalue > leftIRvalue) {
-      leftStepSlow();
+      leftSlow(1);
     }
   }
   // After stopping in front of the candle, start extinguishing
