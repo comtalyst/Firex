@@ -163,13 +163,7 @@ void setup() {
   //////////////////////////////////////////////////////////////
 
   blinkOK(3);                             // ok now
-
-  microphone();
-  /*readyServo();
-    readySonic();
-    readyIRL();
-    readyIR();*/
-
+  microphone();                           // listen ot the microphone
   for (int i = 0; i < 10; i++) {          // prevent sensor's unfinished initialization
     getRangeRightFront();
     getRangeRightRear();
@@ -177,20 +171,17 @@ void setup() {
   }
 
   if (isFar(getRangeRightFront())) {      // in case of unfortunate starting directions!
-    //  right90(1);
+    right90(1);
   }
 }
 
 void loop() {
-  /*while(true){
-    debugAllSensors();
-    delay(50);
-  }*/
+  //debugAllSensors;
   printSensors();
   //debugKeepMoving();
   //debugCheckSensors();
   //debugCheckIRLine();
-  //  debugInRoom();
+  //debugInRoom();
 
   float rangeFrontLow = 0;
   float s1, s2, s3;
@@ -225,23 +216,23 @@ void loop() {
     if (detectLine()) {
       digitalWrite(LEDPin, HIGH);
       alignBot();
-      if (!stillInRoom) {
-        if (fireExtinguished) {
-          if (roomsAfterFire <= 0) {
+      if (!stillInRoom) {                                             // if we're not exiting the room (after fire has been put out)
+        if (fireExtinguished) {                                       // are we going back?
+          if (roomsAfterFire <= 0) {                                  // we reached the start circle
             forwardFast(roomEndSteps);
             while (true) robotStop(100);                              // done!
           }
-          else {
+          else {                                                      // no we're not, no need to enter the room and and continue reversion
             roomsAfterFire--;
+            right90(2);
           }
         }
-        forwardFast(roomEnterSteps);
-
-        // the bot is in the room and facing forward at this point
-        robotStop(20);
-        if (!fireExtinguished) {
+        else{                                                         // We're going in the room
+          forwardFast(roomEnterSteps);
+          // the bot is in the room and facing forward at this point
+          //robotStop(20);
           detectionStory();                          // Andrew's
-          if (fireExtinguished) {
+          if (fireExtinguished) {                                     // if we just found and extinguished the fire
             // getOutOffRoom();
             // dumb room outing
             right90(1);
@@ -255,17 +246,16 @@ void loop() {
               roomsAfterFire = 0;
             }
           }
+          else{                                                       // no fire found --> exit the room
+            // the bot has to face the exit at this point
+            stillInRoom = true;                                     
+            while(!detectLine()){                                     // run to the door, should be around roomEnterSteps times
+              forwardFast(1);
+            }
+            stillInRoom = false;
+            alignBot();
+          }
         }
-        else {
-          right90(2);
-        }
-        // the bot has to face the exit at this point
-        stillInRoom = true;
-        while(!detectLine()){           // should be around roomEnterSteps times
-          forwardFast(1);
-        }
-        stillInRoom = false;
-        alignBot();
         lastSense = doorWidth - (lastSense + botWidth);
         digitalWrite(LEDPin, LOW);
         lastRoomTick = tick;
@@ -273,6 +263,7 @@ void loop() {
       }
       else {
         stillInRoom = false;
+        digitalWrite(LEDPin, LOW);
       }
     }
 
@@ -359,38 +350,46 @@ void loop() {
     if (detectLine()) {
       digitalWrite(LEDPin, HIGH);
       alignBot();
-      if (!stillInRoom) {
-        if (fireExtinguished) {
-          if (roomsAfterFire <= 0) {
+      if (!stillInRoom) {                                             // if we're not exiting the room (after fire has been put out)
+        if (fireExtinguished) {                                       // are we going back?
+          if (roomsAfterFire <= 0) {                                  // we reached the start circle
             forwardFast(roomEndSteps);
             while (true) robotStop(100);                              // done!
           }
-          else {
+          else {                                                      // no we're not, no need to enter the room and and continue reversion
             roomsAfterFire--;
+            left90(2);
           }
         }
-        forwardFast(roomEnterSteps);
-        if (!fireExtinguished) {
-          detectionStory();
-          if (fireExtinguished) {
-            //getOutOffRoom();
+        else{                                                         // We're going in the room
+          forwardFast(roomEnterSteps);
+          // the bot is in the room and facing forward at this point
+          //robotStop(20);
+          detectionStory();                          // Andrew's
+          if (fireExtinguished) {                                     // if we just found and extinguished the fire
+            // getOutOffRoom();
             // dumb room outing
             left90(1);
             stillInRoom = true;
             ///
-            side = 'R';
-            // no need resets because it's short
+            side = 'R';                                               
+            foundDog = true;                                          
+            changeYet = true;                                         // actually oversufficient, but for the code niceness
+            roomsAfterFire = roomEntered;                             // these too
+            if (roomsAfterFire == 3) {
+              roomsAfterFire = 0;
+            }
+          }
+          else{                                                       // no fire found --> exit the room
+            // the bot has to face the exit at this point
+            stillInRoom = true;                                     
+            while(!detectLine()){                                     // run to the door, should be around roomEnterSteps times
+              forwardFast(1);
+            }
+            stillInRoom = false;
+            alignBot();
           }
         }
-        else {
-          left90(2);
-        }
-        stillInRoom = true;
-        while(!detectLine()){
-          forwardFast(1);
-        }
-        stillInRoom = false;
-        alignBot();
         lastSense = doorWidth - (lastSense + botWidth);
         digitalWrite(LEDPin, LOW);
         lastRoomTick = tick;
@@ -398,6 +397,7 @@ void loop() {
       }
       else {
         stillInRoom = false;
+        digitalWrite(LEDPin, LOW);
       }
     }
 
@@ -550,14 +550,17 @@ void getOutOffRoom() {
 }
 
 void debugAllSensors(){
-  Serial.println("leftIRLineSensorPin > " + String(analogRead(leftIRLineSensorPin)));
-  Serial.println("rightIRLineSensorPin > " + String(analogRead(rightIRLineSensorPin)));
-  Serial.println("lowIRSensorPin > " + String(analogRead(lowIRSensorPin)));
-  Serial.println("highIRSensorPin > " + String(analogRead(highIRSensorPin)));
-
-  Serial.println("rightinfraredsensor > " + String(analogRead(rightinfaredsensor)));
-  Serial.println("leftinfraredsensor > " + String(analogRead(leftinfaredsensor)));
-  Serial.println("midinfraredsensor > " + String(analogRead(midinfaredsensor)));
+  while(true){
+    Serial.println("leftIRLineSensorPin > " + String(analogRead(leftIRLineSensorPin)));
+    Serial.println("rightIRLineSensorPin > " + String(analogRead(rightIRLineSensorPin)));
+    Serial.println("lowIRSensorPin > " + String(analogRead(lowIRSensorPin)));
+    Serial.println("highIRSensorPin > " + String(analogRead(highIRSensorPin)));
+  
+    Serial.println("rightinfraredsensor > " + String(analogRead(rightinfaredsensor)));
+    Serial.println("leftinfraredsensor > " + String(analogRead(leftinfaredsensor)));
+    Serial.println("midinfraredsensor > " + String(analogRead(midinfaredsensor)));
+    delay(50);
+  }
 }
 
 /*void debugInRoom() {                        // rightStepSlow = leftSlow(1), calibrated for approx. equal walk
