@@ -21,7 +21,7 @@ const byte rightinfaredsensor = A5;       //For Candle Detection
 const byte leftinfaredsensor = A4;        //For Candle Detection
 const byte midinfaredsensor = A3;         //For Candle Detection
 
-const int AUDIO_INPUT_PIN = A10;          // Input ADC pin for audio data.  Connect OUT pin of mic to any teensy analog pin 
+const int AUDIO_INPUT_PIN = A19;          // Input ADC pin for audio data.  Connect OUT pin of mic to any teensy analog pin 
                                           // and change AUDIO_INPUT_PIN to that pin
 
 const int LEDPin = 13;                    //Onboard LED Pin
@@ -37,7 +37,7 @@ const byte leftFrontTrigPin = 3;
 const byte leftRearEchoPin = 8;
 const byte leftRearTrigPin = 7;
 
-const int clawServoPin = 14;               // servo pin for LEFT wheel (THIS IS CHANGED TO 14) (USING BIGGER BOARDS)
+const int clawServoPin = 24;               // servo pin for LEFT wheel (THIS IS CHANGED TO 14) (USING BIGGER BOARDS)
 
 const int REDPin = 0;                      //LED Breaker Board
 const int BLUEPin = 2;                     //LED Breaker Board
@@ -256,12 +256,6 @@ void loop() {
       }
       else{
         stillInRoom = false;
-        foundDog = true;
-        changeYet = true;
-        roomsAfterFire = roomEntered;
-        if(roomsAfterFire == 3){
-          roomsAfterFire = 0;
-        }
       }
     }
 
