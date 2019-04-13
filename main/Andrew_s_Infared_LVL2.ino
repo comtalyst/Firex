@@ -35,13 +35,13 @@
   forwardSlow (200);                         //Taking 200 steps forward to ensure that the largest room detects  IMPORTANT: This has to correlate with the distance going back
 
   //  rightSlow (379);                          //Going Around 360 Degrees
-}
+  }
 */
 
 /*void loop() {
   //  printSensors();
   senseandmove();
-}*/
+  }*/
 
 //Sam's code
 
@@ -51,7 +51,7 @@
 //const int call = 0;  //the beginning number for the for loop of the counting cycle
 //int callcounter;    //ammount of times that the robot goes through one cycle
 //const int clawServoPin = 10;               // servo pin for LEFT wheel
-////const int LEDPin = 13;    \                // the onboard LED pin (for diagnostics)
+////const int LEDPin = 13;                    // the onboard LED pin (for diagnostics)
 //const int valvePin = A1;        //the versa valve pin
 //int numOpenSteps;   //number of steps to open claw
 //int numCloseSteps;    //number of steps to close claw
@@ -89,38 +89,37 @@
   //    rightSlow (379);                       //Going Around 360 Degrees
   detectionStory();
   //release();
-}
+  }
 
-void loop() {
+  void loop() {
   //  printSensors();
   //  release();
-}*/
+  }*/
 
 void detectionStory() {
   gointotheroom();
-  
+
 }
 
 void gointotheroom() {
-//  printSensors();
   turning360();
 }
 
-void printSensors() {
+/*void printSensors() {
   rightIRvalue = analogRead (rightinfaredsensor);
   leftIRvalue = analogRead (leftinfaredsensor);
   midIRvalue = analogRead (midinfaredsensor);
   rightline = analogRead (rightIRLineSensorPin);
   leftline = analogRead (leftIRLineSensorPin);
   Serial.println ("Left Sensor Value = " + String (leftIRvalue) + " Middle Sensor Value = " + String (midIRvalue) + " Right Sensor Value = " + String (rightIRvalue) + " Left Line Value = " + String (leftline) + " Right Line Value = " + String (rightline));
-}
+  }*/
 
 void checkfire() {
   rightIRvalue = analogRead (rightinfaredsensor);
   leftIRvalue = analogRead (leftinfaredsensor);
   midIRvalue = analogRead (midinfaredsensor);
   botIRvalue = analogRead (lowIRSensorPin);
-  Serial.println ("Left Sensor Value = " + String (leftIRvalue) + " Middle Sensor Value = " + String (midIRvalue) + " Right Sensor Value = " + String (rightIRvalue) + " Left Line Value = " + String (leftline) + " Right Line Value = " + String (rightline)+ "Bottom IR Value = " +String (botIRvalue));
+  // Serial.println ("Left Sensor Value = " + String (leftIRvalue) + " Middle Sensor Value = " + String (midIRvalue) + " Right Sensor Value = " + String (rightIRvalue) + " Left Line Value = " + String (leftline) + " Right Line Value = " + String (rightline) + "Bottom IR Value = " + String (botIRvalue));
 
 }
 
@@ -147,7 +146,7 @@ void turning360 () {
   else {
     //    delay (500);
     rightSlow(160);
-//    forwardSlow(50);
+    //    forwardFast(50);
   }
 }
 
@@ -162,14 +161,23 @@ void movingtowardcandle() {
         break;
       }
       else {
-        forwardStepSlow();
+//        Serial.println ("Forward");
+        forwardFast(1);
       }
     }
     else if (midIRvalue > rightIRvalue) {
-      rightSlow(1);
+//      Serial.println ("Right");
+      rightStepSlow();
     }
     else if (midIRvalue > leftIRvalue) {
+//      Serial.println ("Left");
       leftSlow(1);
+    }
+    else {
+      forwardFast(1);
+      //      Serial.println ("MISTAKE");
+      //      Serial.println ("Left Sensor Value = " + String (leftIRvalue) + " Middle Sensor Value = " + String (midIRvalue) + " Right Sensor Value = " + String (rightIRvalue) + " Left Line Value = " + String (leftline) + " Right Line Value = " + String (rightline) + "Bottom IR Value = " + String (botIRvalue));
+      //      delay(5000);
     }
   }
   // After stopping in front of the candle, start extinguishing
@@ -195,10 +203,15 @@ void turning360version2() {
     if (IfFire == true) {
       candleLEDon();
       movingtowardcandleversion2();                            //Calling to the candle moving module
-      candleLEDoff();
-      fireExtinguished = true;
+      break;
+    }
+    else {
+      break;                                            // ??????????????
     }
   }
+//  Serial.println("Is this you Robin?");
+  candleLEDoff();
+  fireExtinguished = true;
 }
 
 void movingtowardcandleversion2() {  //Moving toward candle, but RamboRelease
@@ -209,17 +222,20 @@ void movingtowardcandleversion2() {  //Moving toward candle, but RamboRelease
 
     if (midIRvalue < rightIRvalue && midIRvalue < leftIRvalue) {
       if (range_cm <= 8.00) {
-        break;
+        break;                //Goes to the bottom
       }
       else {
-        forwardStepSlow();
+        forwardFast(1);
       }
     }
     else if (midIRvalue > rightIRvalue) {
-      rightStepSlow();
+      rightStepFast();
     }
     else if (midIRvalue > leftIRvalue) {
-      leftSlow(1);
+      leftFast(1);
+    }
+    else{
+      forwardFast(1);
     }
   }
   // After stopping in front of the candle, start extinguishing

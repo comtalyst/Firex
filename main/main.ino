@@ -10,7 +10,7 @@
 #define MAX 9999
 
 ////// PINS //////
-const byte leftIRLineSensorPin = A9;      
+const byte leftIRLineSensorPin = A9;
 const byte rightIRLineSensorPin = A8;
 const byte lowIRSensorPin = A7;           //For both Robin and Andrew's code
 const byte highIRSensorPin = A6;          //Missing in pinMode, what is the use of this?
@@ -53,13 +53,13 @@ const float minVeryFurther = 3;
 const float minWalkable = 15;             // minimum distance needed in front of the bot for it to walk forward (wall detection)
 const float minDiffIsDog = -8.2;          // range of distance difference between two high-low front sensors to mark the obstacle as the dog
 const float maxDiffIsDog = 0.3;           // these are calibrated, for robin's maze follower prototype
-const int minTickRoomEnabled = 100;
-const int minLeftRearOKRoom4 = 35;
+const int minTickRoomEnabled = 50;         // CHANGE BACK TO 100
+const int minLeftRearOKRoom4 = 30;
 
 const float minTooFar = 25;               // (UNUSED) minimum distance difference between two sensors that would make the robot comes closer to the wall
 const float maxTooClose = 5;              // (UNUSED) minimum distance difference between two sensors that would make the robot moves away from the wall
 
-const int roomEnterSteps = 220;            // steps the bot should take after entering/exiting the room
+const int roomEnterSteps = 75;            // steps the bot should take after entering/exiting the room
 const int roomEndSteps = 70;              // steps the bot should take to back into the circle
 
 const float stepsPerCm = 100.0 / 32.5;    // 100 steps is 32.5 cm
@@ -81,6 +81,9 @@ char track[1005];
 int trackSize;
 bool goingBack;
 bool stillInRoom;
+int roomWithFire;
+int turnsAfterExit;
+bool dumb;
 
 /////////////////////////////////////////
 
@@ -176,8 +179,11 @@ void setup() {
 }
 
 void loop() {
-  //debugAllSensors;
-  printSensors();
+
+  //debugAllSensors();
+
+  //debugAllSensors();
+  //printSensors();
   //debugKeepMoving();
   //debugCheckSensors();
   //debugCheckIRLine();
@@ -190,6 +196,10 @@ void loop() {
   s3 = getRangeFrontLow();
   rangeFrontLow = selectRange(s1, s2, s3);
 
+  if(!dumb && roomEntered == 3 && !stillInRoom && fireExtinguished && turnsAfterExit == 1){       // no need since the comeback is untimed
+    side = 'R';
+    dumb = true;
+  }
   if (!changeYet && roomEntered >= 3 && turnsAfterRoom3 >= 2) {
     changeYet = true;
     side = 'L';
@@ -227,14 +237,17 @@ void loop() {
             right90(2);
           }
         }
-        else{                                                         // We're going in the room
+        else {                                                        // We're going in the room
           forwardFast(roomEnterSteps);
           // the bot is in the room and facing forward at this point
           //robotStop(20);
-          detectionStory();                          // Andrew's
+          detectionStory();                                           // Andrew's Code
           if (fireExtinguished) {                                     // if we just found and extinguished the fire
+            roomWithFire = roomEntered+1;
             // getOutOffRoom();
             // dumb room outing
+//            Serial.println("Yes, Chris, it is me!");
+
             right90(1);
             stillInRoom = true;
             ///
@@ -245,25 +258,32 @@ void loop() {
             if (roomsAfterFire == 3) {
               roomsAfterFire = 0;
             }
+            else if (roomsAfterFire == 2){
+              roomsAfterFire = 3; 
+            }
           }
-          else{                                                       // no fire found --> exit the room
+          else {                                                      // no fire found --> exit the room
             // the bot has to face the exit at this point
-            stillInRoom = true;                                     
-            while(!detectLine()){                                     // run to the door, should be around roomEnterSteps times
+            stillInRoom = true;
+            while (!detectLine()) {                                   // run to the door, should be around roomEnterSteps times
               forwardFast(1);
             }
             stillInRoom = false;
             alignBot();
+            forwardFast(20);
+            roomEntered++;
           }
         }
         lastSense = doorWidth - (lastSense + botWidth);
         digitalWrite(LEDPin, LOW);
         lastRoomTick = tick;
-        roomEntered++;
       }
       else {
         stillInRoom = false;
         digitalWrite(LEDPin, LOW);
+        roomEntered++;
+        forwardFast(20);
+        turnsAfterExit = 0;
       }
     }
 
@@ -361,43 +381,48 @@ void loop() {
             left90(2);
           }
         }
-        else{                                                         // We're going in the room
+        else {                                                        // We're going in the room
           forwardFast(roomEnterSteps);
           // the bot is in the room and facing forward at this point
           //robotStop(20);
           detectionStory();                          // Andrew's
           if (fireExtinguished) {                                     // if we just found and extinguished the fire
+            roomWithFire = roomEntered+1;
             // getOutOffRoom();
             // dumb room outing
             left90(1);
             stillInRoom = true;
             ///
-            side = 'R';                                               
-            foundDog = true;                                          
+            side = 'R';
+            foundDog = true;
             changeYet = true;                                         // actually oversufficient, but for the code niceness
             roomsAfterFire = roomEntered;                             // these too
             if (roomsAfterFire == 3) {
               roomsAfterFire = 0;
             }
           }
-          else{                                                       // no fire found --> exit the room
+          else {                                                      // no fire found --> exit the room
             // the bot has to face the exit at this point
-            stillInRoom = true;                                     
-            while(!detectLine()){                                     // run to the door, should be around roomEnterSteps times
+            stillInRoom = true;
+            while (!detectLine()) {                                   // run to the door, should be around roomEnterSteps times
               forwardFast(1);
             }
             stillInRoom = false;
             alignBot();
+            roomEntered++;
+            forwardFast(20);
           }
         }
         lastSense = doorWidth - (lastSense + botWidth);
         digitalWrite(LEDPin, LOW);
         lastRoomTick = tick;
-        roomEntered++;
       }
       else {
         stillInRoom = false;
         digitalWrite(LEDPin, LOW);
+        roomEntered++;
+        forwardFast(20);
+        turnsAfterExit = 0;
       }
     }
 
@@ -455,12 +480,14 @@ void loop() {
 
 void debugKeepMoving() {
   int steps = 0;
-  while (true) {
-    forwardFast(1);
-    steps++;
-    if (steps >= 1000) {
-      digitalWrite(LEDPin, HIGH);
+  while(true){
+    for(int i = 0; i < 150; i++){
+      forwardFast(1);
+      steps++;
     }
+    right90(1);
+    robotStop(20);
+    left90(1);
   }
 }
 void debugCheckSensors() {
@@ -549,20 +576,20 @@ void getOutOffRoom() {
   goingBack = false;
 }
 
-void debugAllSensors(){
-  while(true){
+/*void debugAllSensors() {
+  while (true) {
     Serial.println("leftIRLineSensorPin > " + String(analogRead(leftIRLineSensorPin)));
     Serial.println("rightIRLineSensorPin > " + String(analogRead(rightIRLineSensorPin)));
     Serial.println("lowIRSensorPin > " + String(analogRead(lowIRSensorPin)));
     Serial.println("highIRSensorPin > " + String(analogRead(highIRSensorPin)));
-  
+
     Serial.println("rightinfraredsensor > " + String(analogRead(rightinfaredsensor)));
     Serial.println("leftinfraredsensor > " + String(analogRead(leftinfaredsensor)));
     Serial.println("midinfraredsensor > " + String(analogRead(midinfaredsensor)));
     delay(50);
   }
 }
-
+*/
 /*void debugInRoom() {                        // rightStepSlow = leftSlow(1), calibrated for approx. equal walk
   for (i = 1; i <= 500; i++) {
     checkfire();

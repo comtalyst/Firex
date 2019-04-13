@@ -9,7 +9,7 @@ const int rightServoPin = 12;
 */
 
 // Left Servo Pulse Width Constants
-const int left_forward_fast = 1840;       // CCW Fast
+const int left_forward_fast = 1805;       // CCW Fast
 const int left_forward_slow = 1600;       // CCW Slow
 const int left_stop = 1500;               // Center position
 const int left_reverse_slow = 1400;       // CW Slow
@@ -215,7 +215,7 @@ void createPulse(byte servoPin, int pulseWidth) {
 
 const int turnSteps = 1;         // steps taken per turn action
 const int forwardSteps = 1;      // steps taken per walk action
-const int right90Steps = 26;
+const int right90Steps = 25;
 const int left90Steps = 26;
 
 const float firstSensorTailDistance = 15.0;         // distance between front sensor to robot's tail
