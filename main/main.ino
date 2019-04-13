@@ -80,6 +80,7 @@ int turnsAfterFire;
 char track[1005];
 int trackSize;
 bool goingBack;
+bool stillInRoom;
 
 /////////////////////////////////////////
 
@@ -168,7 +169,7 @@ void setup() {
   blinkOK(3);                             // ok now
 
   if (isFar(getRangeRightFront())) {      // in case of unfortunate starting directions!
-    right90(1);
+  //  right90(1);
   }
 }
 
@@ -176,6 +177,7 @@ void loop() {
   //debugKeepMoving();
   //debugCheckSensors();
   //debugCheckIRLine();
+  debugInRoom();
 
   float rangeFrontLow = 0;
   float s1, s2, s3;
@@ -210,42 +212,57 @@ void loop() {
     if (detectLine()) {
       digitalWrite(LEDPin, HIGH);
       alignBot();
-      if(fireExtinguished){
-        if(roomsAfterFire <= 0){
-          forwardFast(roomEndSteps);
-          while(true) robotStop(100);                               // done!
-        }
-        else{
-          roomsAfterFire--;
-        }
-      }
-      forwardFast(roomEnterSteps);
-
-      // the bot is in the room and facing forward at this point
-      robotStop(20);
-      if(!fireExtinguished){
-        fireExtinguished = senseandmove();                          // Andrew's
+      if(!stillInRoom){
         if(fireExtinguished){
-          getOutOffRoom();
-          side = 'L';
-          foundDog = true;                                          // prevent any changes --> this proved to be work in all rooms (standard return in 1,2,3 and greedy short return in 4)
-          changeYet = true;
-          roomsAfterFire = roomEntered;
-          if(roomsAfterFire == 3){
-            roomsAfterFire = 0;
+          if(roomsAfterFire <= 0){
+            forwardFast(roomEndSteps);
+            while(true) robotStop(100);                               // done!
+          }
+          else{
+            roomsAfterFire--;
           }
         }
-      }      
-      else{
-        right90(2);
+        forwardFast(roomEnterSteps);
+  
+        // the bot is in the room and facing forward at this point
+        robotStop(20);
+        if(!fireExtinguished){
+          fireExtinguished = senseandmove();                          // Andrew's
+          if(fireExtinguished){
+            // getOutOffRoom();
+            // dumb room outing
+            right90(1);
+            stillInRoom = true;
+            ///
+            side = 'L';
+            foundDog = true;                                          // prevent any changes --> this proved to be work in all rooms (standard return in 1,2,3 and greedy short return in 4)
+            changeYet = true;
+            roomsAfterFire = roomEntered;
+            if(roomsAfterFire == 3){
+              roomsAfterFire = 0;
+            }
+          }
+        }      
+        else{
+          right90(2);
+        }
+        // the bot has to face the exit at this point
+  
+        forwardFast(roomEnterSteps);
+        lastSense = doorWidth - (lastSense + botWidth);
+        digitalWrite(LEDPin, LOW);
+        lastRoomTick = tick;
+        roomEntered++;
       }
-      // the bot has to face the exit at this point
-
-      forwardFast(roomEnterSteps);
-      lastSense = doorWidth - (lastSense + botWidth);
-      digitalWrite(LEDPin, LOW);
-      lastRoomTick = tick;
-      roomEntered++;
+      else{
+        stillInRoom = false;
+        foundDog = true;
+        changeYet = true;
+        roomsAfterFire = roomEntered;
+        if(roomsAfterFire == 3){
+          roomsAfterFire = 0;
+        }
+      }
     }
 
     // IF DETECTS THE WALL
@@ -331,41 +348,45 @@ void loop() {
     if (detectLine()) {
       digitalWrite(LEDPin, HIGH);
       alignBot();
-      if(fireExtinguished){
-        if(roomsAfterFire <= 0){
-          forwardFast(roomEndSteps);
-          while(true) robotStop(100);                               // done!
-        }
-        else{
-          roomsAfterFire--;
-        }
-      }
-      forwardFast(roomEnterSteps);
-
-      robotStop(20);
-      if(!fireExtinguished){
-        fireExtinguished = senseandmove();
+      if(!stillInRoom){
         if(fireExtinguished){
-          getOutOffRoom();
-          side = 'R';
-          foundDog = true;
-          changeYet = true;
-          roomsAfterFire = roomEntered;
-          if(roomsAfterFire == 3){
-            roomsAfterFire = 0;
+          if(roomsAfterFire <= 0){
+            forwardFast(roomEndSteps);
+            while(true) robotStop(100);                               // done!
+          }
+          else{
+            roomsAfterFire--;
           }
         }
+        forwardFast(roomEnterSteps);
+  
+        robotStop(20);
+        if(!fireExtinguished){
+          fireExtinguished = senseandmove();
+          if(fireExtinguished){
+            //getOutOffRoom();
+            // dumb room outing
+            left90(1);
+            stillInRoom = true;
+            ///
+            side = 'R';
+            // no need resets because it's short
+          }
+        }
+        else{
+          left90(2);
+        }
+        
+  
+        forwardFast(roomEnterSteps);
+        lastSense = doorWidth - (lastSense + botWidth);
+        digitalWrite(LEDPin, LOW);
+        lastRoomTick = tick;
+        roomEntered++;
       }
       else{
-        left90(2);
+        stillInRoom = false;
       }
-      
-
-      forwardFast(roomEnterSteps);
-      lastSense = doorWidth - (lastSense + botWidth);
-      digitalWrite(LEDPin, LOW);
-      lastRoomTick = tick;
-      roomEntered++;
     }
 
     else if (!isFarIR(rangeFrontLow) && rangeFrontLow < minWalkable) {
@@ -493,20 +514,47 @@ void getOutOffRoom(){
   right90(1);
   robotStop(1);
   right90(1);
-  for(int i = trackSize-1; i >= 0; i--){
+  /*for(int i = trackSize-1; i >= 0; i--){
+    checkfire();
+    checkline();
     if(track[i] == 'F'){
-      forwardStepSlow();
+      forwardStepFast();
+      movingtoward();
     }
     else if(track[i] == 'L'){
-      leftStepSlow();
-    }
-    else{
+      //forwardStepSlow();
       rightStepSlow();
     }
-  }
+    else{
+      //forwardStepSlow();
+      leftSlow(1);
+    }
+  }*/
   while(!detectLine()){
     forwardSlightly(1);
   }
   alignBot();
   goingBack = false;
+}
+
+void debugInRoom(){                         // rightStepSlow = leftSlow(1), calibrated for approx. equal walk
+  for(i = 1; i <= 500; i++){
+    checkfire();
+    checkline();
+    if(i%75 == 0){
+      rightStepSlow();
+      track[trackSize++] = 'R';
+    }
+    /*else if(i%15 == 0){
+      leftSlow(1);
+      track[trackSize++] = 'L';
+    }*/
+    else{
+      forwardStepFast();
+      movingtoward();
+      track[trackSize++] = 'F';
+    }
+  }
+  getOutOffRoom();
+  while(true);
 }
