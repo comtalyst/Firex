@@ -65,7 +65,13 @@ void checkline() {
   leftline = analogRead (leftIRLineSensorPin);          //Modified to Robin's code
 }
 
-bools senseandmove () {
+bool senseandmove () {
+  if(roomEntered == 3){
+    return true;
+  }
+  else{
+    return false;
+  }
   for (int x = 0; x < 379; x++) {
     checkfire();
     if (rightIRvalue < 1023 && leftIRvalue < 1023 && midIRvalue < 1023) {
@@ -96,12 +102,15 @@ void startmoving() {
   if (midIRvalue < rightIRvalue && midIRvalue < leftIRvalue) {
     forwardStepSlow();
     movingtoward();
+    track[trackSize++] = 'F';
   }
   else if (midIRvalue >= rightIRvalue) {
     rightStepSlow();
+    track[trackSize++] = 'R';
   }
   else if (midIRvalue >= leftIRvalue) {
     leftStepSlow();
+    track[trackSize++] = 'L';
   }
 }
 

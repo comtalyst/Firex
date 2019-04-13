@@ -4,8 +4,7 @@
 // Main Frame for the Robot
 
 /*
-  after complete 3rd room and 2 90s --> switch following side --> room 1 doors will be out of concern
-  if meet dog --> change side then face it like the wall (as planned)
+  CALIBRATES EVERY TIME BEFORE COMPETE!!!!!!!!!1
 */
 
 #define MAX 9999
@@ -55,19 +54,19 @@ const float minWalkable = 15;             // minimum distance needed in front of
 const float minDiffIsDog = -8.2;          // range of distance difference between two high-low front sensors to mark the obstacle as the dog
 const float maxDiffIsDog = 0.3;           // these are calibrated, for robin's maze follower prototype
 const int minTickRoomEnabled = 100;
-const int minLeftRearOKRoom4 = 28;
+const int minLeftRearOKRoom4 = 35;
 
 const float minTooFar = 25;               // (UNUSED) minimum distance difference between two sensors that would make the robot comes closer to the wall
 const float maxTooClose = 5;              // (UNUSED) minimum distance difference between two sensors that would make the robot moves away from the wall
 
 const int roomEnterSteps = 60;            // steps the bot should take after entering/exiting the room
-const int roomEndSteps = 20;              // steps the bot should take to back into the circle
+const int roomEndSteps = 70;              // steps the bot should take to back into the circle
 
 const float stepsPerCm = 100.0 / 32.5;    // 100 steps is 32.5 cm
 const float doorWidth = 50;
 const float botWidth = 18;
 
-int tick;
+long long tick;
 float lastSense = 15;                     // last sensed distance to the following wall
 int lastRoomTick = -MAX;
 int roomEntered;
@@ -76,6 +75,11 @@ bool changeYet = false;
 bool foundDog = false;
 bool fireExtinguished = false;
 int roomsAfterFire;
+int turnsAfterFire;
+//long long banTick;
+char track[1005];
+int trackSize;
+bool goingBack;
 
 /////////////////////////////////////////
 
@@ -222,6 +226,7 @@ void loop() {
       if(!fireExtinguished){
         fireExtinguished = senseandmove();                          // Andrew's
         if(fireExtinguished){
+          getOutOffRoom();
           side = 'L';
           foundDog = true;                                          // prevent any changes --> this proved to be work in all rooms (standard return in 1,2,3 and greedy short return in 4)
           changeYet = true;
@@ -231,7 +236,9 @@ void loop() {
           }
         }
       }      
-      right90(2);
+      else{
+        right90(2);
+      }
       // the bot has to face the exit at this point
 
       forwardFast(roomEnterSteps);
@@ -339,6 +346,7 @@ void loop() {
       if(!fireExtinguished){
         fireExtinguished = senseandmove();
         if(fireExtinguished){
+          getOutOffRoom();
           side = 'R';
           foundDog = true;
           changeYet = true;
@@ -348,7 +356,10 @@ void loop() {
           }
         }
       }
-      left90(2);
+      else{
+        left90(2);
+      }
+      
 
       forwardFast(roomEnterSteps);
       lastSense = doorWidth - (lastSense + botWidth);
@@ -410,25 +421,30 @@ void loop() {
   }*/
 
 void debugKeepMoving() {
+  int steps = 0;
   while (true) {
     forwardFast(1);
+    steps++;
+    if(steps >= 1000){
+      digitalWrite(LEDPin, HIGH);
+    }
   }
 }
 void debugCheckSensors() {
   while (true) {
-    float rangeRightFront = 0;
-    float rangeRightRear = 0;
+    float rangeLeftFront = 0;
+    float rangeLeftRear = 0;
     float rangeFrontLow = 0;
     float rangeFrontHigh = 0;
     float s1, s2, s3;
     s1 = getRangeLeftFront();
     s2 = getRangeLeftFront();
     s3 = getRangeLeftFront();
-    rangeRightFront = selectRange(s1, s2, s3);
+    rangeLeftFront = selectRange(s1, s2, s3);
     s1 = getRangeLeftRear();
     s2 = getRangeLeftRear();
     s3 = getRangeLeftRear();
-    rangeRightRear = selectRange(s1, s2, s3);
+    rangeLeftRear = selectRange(s1, s2, s3);
     s1 = getRangeFrontLow();
     s2 = getRangeFrontLow();
     s3 = getRangeFrontLow();
@@ -437,8 +453,8 @@ void debugCheckSensors() {
     s2 = getRangeFrontHigh();
     s3 = getRangeFrontHigh();
     rangeFrontHigh = selectRange(s1, s2, s3);
-    //Serial.println("Side > " + String(rangeRightFront) + ", " + String(rangeRightRear) + ", Diff = " + String(rangeRightFront - rangeRightRear));
-    Serial.println("Front > " + String(rangeFrontLow) + ", " + String(rangeFrontHigh) + ", Diff = " + String(rangeFrontLow - rangeFrontHigh));
+    Serial.println("Side > " + String(rangeLeftFront) + ", " + String(rangeLeftRear) + ", Diff = " + String(rangeLeftFront - rangeLeftRear));
+    //Serial.println("Front > " + String(rangeFrontLow) + ", " + String(rangeFrontHigh) + ", Diff = " + String(rangeFrontLow - rangeFrontHigh));
     delay(200);
   }
 }
@@ -470,4 +486,27 @@ float selectRange(float s1, float s2, float s3) {
   else {
     return s3;
   }
+}
+
+void getOutOffRoom(){
+  goingBack = true;
+  right90(1);
+  robotStop(1);
+  right90(1);
+  for(int i = trackSize-1; i >= 0; i--){
+    if(track[i] == 'F'){
+      forwardStepSlow();
+    }
+    else if(track[i] == 'L'){
+      leftStepSlow();
+    }
+    else{
+      rightStepSlow();
+    }
+  }
+  while(!detectLine()){
+    forwardSlightly(1);
+  }
+  alignBot();
+  goingBack = false;
 }

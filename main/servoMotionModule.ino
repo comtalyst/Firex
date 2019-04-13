@@ -9,7 +9,7 @@ const int rightServoPin = 12;
 */
 
 // Left Servo Pulse Width Constants
-const int left_forward_fast = 1840;       // CCW Fast
+const int left_forward_fast = 1850;       // CCW Fast
 const int left_forward_slow = 1600;       // CCW Slow
 const int left_stop = 1500;               // Center position
 const int left_reverse_slow = 1400;       // CW Slow
@@ -215,8 +215,8 @@ void createPulse(byte servoPin, int pulseWidth) {
 
 const int turnSteps = 1;         // steps taken per turn action
 const int forwardSteps = 1;      // steps taken per walk action
-const int right90Steps = 25;
-const int left90Steps = 24;
+const int right90Steps = 26;
+const int left90Steps = 26;
 
 const float firstSensorTailDistance = 15.0;         // distance between front sensor to robot's tail
 const float firstSensorDoorwayDistance = 3.0;
@@ -249,8 +249,18 @@ void right90Ex(float lastSense, bool justComeOut) {
     leftSlightly(stepsAwayBefore90);
   }
   const float tailAdder = 4.0;
-  int moveSteps = (int)((tailAdder + firstSensorTailDistance - firstSensorDoorwayDistance*justComeOut) * stepsPerCm + lastSense * stepsPerCm);
-  forwardFast(moveSteps);
+  int moveSteps = (int)(((tailAdder + firstSensorTailDistance - firstSensorDoorwayDistance*justComeOut) * stepsPerCm + lastSense * stepsPerCm)*0.5);
+//  if(fireExtinguished){
+    for (int i = 0; i < moveSteps; i++) {
+      if (detectLine()) {
+        return;
+      }
+      forwardFast(1);
+    }
+//  }
+//  else{
+//    forwardFast(moveSteps);
+//  }
   right90(1);
   for (int i = 0; i < stepsForwardAfterTurn; i++) {
     if (detectLine() || (!isFarIR(getRangeFrontLow()) && getRangeFrontLow() < minWalkable)) {
@@ -277,8 +287,18 @@ void left90Ex(float lastSense, bool justComeOut) {
     rightSlightly(stepsAwayBefore90);
   }
   const float tailAdder = 4.0;
-  int moveSteps = (int)((tailAdder + firstSensorTailDistance - firstSensorDoorwayDistance*justComeOut) * stepsPerCm + lastSense * stepsPerCm);
-  forwardFast(moveSteps);
+  int moveSteps = (int)(((tailAdder + firstSensorTailDistance - firstSensorDoorwayDistance*justComeOut) * stepsPerCm + lastSense * stepsPerCm)*0.5);
+//  if(fireExtinguished){
+    for (int i = 0; i < moveSteps; i++) {
+      if (detectLine()) {
+        return;
+      }
+      forwardFast(1);
+    }
+//  }
+//  else{
+//    forwardFast(moveSteps);
+//  }
   left90(1);
   for (int i = 0; i < stepsForwardAfterTurn; i++) {
     if (detectLine() || (!isFarIR(getRangeFrontLow()) && getRangeFrontLow() < minWalkable)) {
