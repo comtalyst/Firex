@@ -9,7 +9,7 @@ const int rightServoPin = 12;
 */
 
 // Left Servo Pulse Width Constants
-const int left_forward_fast = 1810;       // CCW Fast
+const int left_forward_fast = 1785;       // CCW Fast
 const int left_forward_slow = 1600;       // CCW Slow
 const int left_stop = 1500;               // Center position
 const int left_reverse_slow = 1400;       // CW Slow
@@ -248,7 +248,7 @@ void right90Ex(float lastSense, bool justComeOut) {
   if(!justComeOut){
     leftSlightly(stepsAwayBefore90);
   }
-  const float tailAdder = 2.0;
+  const float tailAdder = 3.0;
   int moveSteps = (int)((tailAdder + firstSensorTailDistance - firstSensorDoorwayDistance*justComeOut) * stepsPerCm + lastSense * stepsPerCm);
 //  if(fireExtinguished){
     for (int i = 0; i < moveSteps; i++) {
@@ -286,7 +286,7 @@ void left90Ex(float lastSense, bool justComeOut) {
   if(!justComeOut){
     rightSlightly(stepsAwayBefore90);
   }
-  const float tailAdder = 2.0;
+  const float tailAdder = 3.0;
   int moveSteps = (int)((tailAdder + firstSensorTailDistance - firstSensorDoorwayDistance*justComeOut) * stepsPerCm + lastSense * stepsPerCm);
 //  if(fireExtinguished){
     for (int i = 0; i < moveSteps; i++) {

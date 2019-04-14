@@ -50,7 +50,7 @@ const float minFar = 40;                  // minimum distance from sensor that w
 
 const float minFurther = 0.75;            // minimum distance difference between two sensors that would make the robot readjust itself
 const float minVeryFurther = 3;
-const float minWalkable = 17;             // minimum distance needed in front of the bot for it to walk forward (wall detection)
+const float minWalkable = 15;             // minimum distance needed in front of the bot for it to walk forward (wall detection)
 const float minDiffIsDog = -8.2;          // range of distance difference between two high-low front sensors to mark the obstacle as the dog
 const float maxDiffIsDog = 0.3;           // these are calibrated, for robin's maze follower prototype
 const int minTickRoomEnabled = 50;        
@@ -90,6 +90,7 @@ bool dumb;
 int turns;
 int fireDeg;
 bool changeToLeftAfterExit;
+int turnsAfterExtinguished;
 
 /////////////////////////////////////////
 
@@ -126,7 +127,7 @@ int midIRvalue;
 int botIRvalue;
 int rightline;
 int leftline;
-const int steps360 = 305;
+const int steps360 = 310;
 const int steps180 = steps360/2;
 
 boolean IfFire = false;
@@ -203,12 +204,12 @@ void loop() {
   s3 = getRangeFrontLow();
   rangeFrontLow = selectRange(s1, s2, s3);
   
-  /*if(turns%2){
+  if(turnsAfterRoom3%2){
     digitalWrite(REDPin, HIGH);
   }
   else{
     digitalWrite(REDPin, LOW);
-  }*/
+  }
   if (!changeYet && roomEntered >= 3 && turnsAfterRoom3 >= 2) {
     changeYet = true;
     side = 'L';
@@ -317,6 +318,7 @@ void loop() {
       else {
         left90(1);
         turns++;
+        turnsAfterExtinguished++;
       }
     }
 
@@ -330,6 +332,7 @@ void loop() {
       }
       if(isFarIR(rangeFrontLow) || rangeFrontLow >= minWalkable){
         turns++;
+        turnsAfterExtinguished++;
       }
     }
 
@@ -456,6 +459,7 @@ void loop() {
       else {
         right90(1);
         turns++;
+        turnsAfterExtinguished++;
       }
     }
 
@@ -463,6 +467,7 @@ void loop() {
       left90Ex(1, (tick - lastRoomTick == 1 || isFar(rangeLeftRear)));
       if(isFarIR(rangeFrontLow) || rangeFrontLow >= minWalkable){
         turns++;
+        turnsAfterExtinguished++;
       }
     }
 
@@ -633,17 +638,17 @@ void getOutOffRoom() {
 void debugMisc(){
   while(true){
     for (int i = 0; i < 100; i++) {
-      /*if (detectLine()) {                     // this got 100 / 62.5
+      if (detectLine()) {                     // this got 100 / 62.5
         return;
-      }*/
-      if (detectLine() || (!isFarIR(getRangeFrontLow()) && getRangeFrontLow() < minWalkable)) {     // this 100 / 137
+      }
+      /*if (detectLine() || (!isFarIR(getRangeFrontLow()) && getRangeFrontLow() < minWalkable)) {     // this 100 / 137
         Serial.println("555");
       }
       forwardFast(1);
       float s1 = getRangeLeftFront();
       float s2 = getRangeLeftFront();
       float s3 = getRangeLeftFront();
-      float rangeLeftFront = selectRange(s1, s2, s3);
+      float rangeLeftFront = selectRange(s1, s2, s3);*/
       forwardFast(1);
     }
     robotStop(30);
