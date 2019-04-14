@@ -248,7 +248,7 @@ void right90Ex(float lastSense, bool justComeOut) {
   if(!justComeOut){
     leftSlightly(stepsAwayBefore90);
   }
-  const float tailAdder = 3.0;
+  const float tailAdder = 1.0;
   int moveSteps = (int)((tailAdder + firstSensorTailDistance - firstSensorDoorwayDistance*justComeOut) * stepsPerCm + lastSense * stepsPerCm);
 //  if(fireExtinguished){
     for (int i = 0; i < moveSteps; i++) {
@@ -286,7 +286,7 @@ void left90Ex(float lastSense, bool justComeOut) {
   if(!justComeOut){
     rightSlightly(stepsAwayBefore90);
   }
-  const float tailAdder = 3.0;
+  const float tailAdder = 1.0;
   int moveSteps = (int)((tailAdder + firstSensorTailDistance - firstSensorDoorwayDistance*justComeOut) * stepsPerCm + lastSense * stepsPerCm);
 //  if(fireExtinguished){
     for (int i = 0; i < moveSteps; i++) {

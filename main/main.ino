@@ -204,12 +204,12 @@ void loop() {
   s3 = getRangeFrontLow();
   rangeFrontLow = selectRange(s1, s2, s3);
   
-  if(turnsAfterRoom3%2){
+  /*if(turnsAfterRoom3%2){
     digitalWrite(REDPin, HIGH);
   }
   else{
     digitalWrite(REDPin, LOW);
-  }
+  }*/
   if (!changeYet && roomEntered >= 3 && turnsAfterRoom3 >= 2) {
     changeYet = true;
     side = 'L';
@@ -262,7 +262,7 @@ void loop() {
             stillInRoom = true;
             ///
             side = 'L';
-            if(roomWithFire == 3 && fireDeg > steps360/2){                // on the left!
+            if(roomWithFire == 3 && fireDeg > steps180/2 + steps180/4){                // on the left!
               right90(1);
               side = 'R';
               changeToLeftAfterExit = true;
