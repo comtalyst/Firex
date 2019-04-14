@@ -53,7 +53,7 @@ const float minVeryFurther = 3;
 const float minWalkable = 15;             // minimum distance needed in front of the bot for it to walk forward (wall detection)
 const float minDiffIsDog = -8.2;          // range of distance difference between two high-low front sensors to mark the obstacle as the dog
 const float maxDiffIsDog = 0.3;           // these are calibrated, for robin's maze follower prototype
-const int minTickRoomEnabled = 50;         // CHANGE BACK TO 100
+const int minTickRoomEnabled = 50;        
 const int minLeftRearOKRoom4 = 30;
 
 const float minTooFar = 25;               // (UNUSED) minimum distance difference between two sensors that would make the robot comes closer to the wall
@@ -61,6 +61,7 @@ const float maxTooClose = 5;              // (UNUSED) minimum distance differenc
 
 const int roomEnterSteps = 75;            // steps the bot should take after entering/exiting the room
 const int roomEndSteps = 70;              // steps the bot should take to back into the circle
+const int roomExitSteps = 20;
 
 const float stepsPerCm = 100.0 / 32.5;    // 100 steps is 32.5 cm
 const float doorWidth = 50;
@@ -84,6 +85,9 @@ bool stillInRoom;
 int roomWithFire;
 int turnsAfterExit;
 bool dumb;
+int turns;
+int fireDeg;
+bool changeToLeftAfterExit;
 
 /////////////////////////////////////////
 
@@ -179,9 +183,6 @@ void setup() {
 }
 
 void loop() {
-
-  //debugAllSensors();
-
   //debugAllSensors();
   //printSensors();
   //debugKeepMoving();
@@ -196,10 +197,6 @@ void loop() {
   s3 = getRangeFrontLow();
   rangeFrontLow = selectRange(s1, s2, s3);
 
-  if(!dumb && roomEntered == 3 && !stillInRoom && fireExtinguished && turnsAfterExit == 1){       // no need since the comeback is untimed
-    side = 'R';
-    dumb = true;
-  }
   if (!changeYet && roomEntered >= 3 && turnsAfterRoom3 >= 2) {
     changeYet = true;
     side = 'L';
@@ -252,14 +249,16 @@ void loop() {
             stillInRoom = true;
             ///
             side = 'L';
+            if(roomsWithFire == 3 && fireDeg > 320/2){                // on the left!
+              right90(1);
+              side = 'R';
+              changeToLeftAfterExit = true;
+            }
             foundDog = true;                                          // prevent any changes --> this proved to be work in all rooms (standard return in 1,2,3 and greedy short return in 4)
             changeYet = true;
             roomsAfterFire = roomEntered;
             if (roomsAfterFire == 3) {
               roomsAfterFire = 0;
-            }
-            else if (roomsAfterFire == 2){
-              roomsAfterFire = 3; 
             }
           }
           else {                                                      // no fire found --> exit the room
@@ -270,7 +269,7 @@ void loop() {
             }
             stillInRoom = false;
             alignBot();
-            forwardFast(20);
+            forwardFast(roomExitSteps);
             roomEntered++;
           }
         }
@@ -284,6 +283,9 @@ void loop() {
         roomEntered++;
         forwardFast(20);
         turnsAfterExit = 0;
+        if(changeToLeftAfterExit){
+          side = 'L';
+        }
       }
     }
 
@@ -310,10 +312,12 @@ void loop() {
     // IF SIDE-FRONT SENSOR IS FAR
     else if (isFar(rangeRightFront)) {
       // SHARP 90 DEG TURN
+      
       right90Ex(1, (tick - lastRoomTick == 1 || isFar(rangeRightRear)));      // includes stick
       if (roomEntered >= 3) {
         turnsAfterRoom3++;
       }
+      turns++;
     }
 
 
@@ -410,7 +414,7 @@ void loop() {
             stillInRoom = false;
             alignBot();
             roomEntered++;
-            forwardFast(20);
+            forwardFast(roomExitSteps);
           }
         }
         lastSense = doorWidth - (lastSense + botWidth);
@@ -445,6 +449,7 @@ void loop() {
 
     else if (isFar(rangeLeftFront)) {
       left90Ex(1, (tick - lastRoomTick == 1 || isFar(rangeLeftRear)));
+      turns++;
     }
 
     else if (!isFar(rangeLeftRear) && rangeLeftFront - rangeLeftRear >= minFurther) {

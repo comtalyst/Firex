@@ -134,6 +134,7 @@ void turning360 () {
     checkfire();
     if (rightIRvalue < 1023 || leftIRvalue < 1023 || midIRvalue < 1023) {
       IfFire = true;
+      fireDeg = x;
       break;
     }
     rightStepSlow();
