@@ -50,7 +50,7 @@ const float minFar = 40;                  // minimum distance from sensor that w
 
 const float minFurther = 0.75;            // minimum distance difference between two sensors that would make the robot readjust itself
 const float minVeryFurther = 3;
-const float minWalkable = 15;             // minimum distance needed in front of the bot for it to walk forward (wall detection)
+const float minWalkable = 17;             // minimum distance needed in front of the bot for it to walk forward (wall detection)
 const float minDiffIsDog = -8.2;          // range of distance difference between two high-low front sensors to mark the obstacle as the dog
 const float maxDiffIsDog = 0.3;           // these are calibrated, for robin's maze follower prototype
 const int minTickRoomEnabled = 50;        
@@ -63,9 +63,11 @@ const int roomEnterSteps = 85;            // steps the bot should take after ent
 const int roomEndSteps = 70;              // steps the bot should take to back into the circle
 const int roomExitSteps = 20;
 
-const float stepsPerCm = 100.0 / 32.5;    // 100 steps is 32.5 cm
+const float stepsPerCm = 100.0 / 62.5;    // 100 steps is 62.5 cm
+const float stepsPerCmH = 100 / 137;
 const float doorWidth = 50;
 const float botWidth = 18;
+//const float preferredDistance = 4;
 
 long long tick;
 float lastSense = 15;                     // last sensed distance to the following wall
@@ -192,6 +194,7 @@ void loop() {
   //debugCheckIRLine();
   //debugInRoom();
   //debugDetectDog();
+  //debugMisc();
 
   float rangeFrontLow = 0;
   float s1, s2, s3;
@@ -305,10 +308,8 @@ void loop() {
       s2 = getRangeFrontHigh();
       s3 = getRangeFrontHigh();
       float rangeFrontHigh = selectRange(s1, s2, s3);
-      if (roomEntered >= 3 && (rangeFrontLow - rangeFrontHigh < minDiffIsDog || rangeFrontLow - rangeFrontHigh > maxDiffIsDog)) {
-        if (!foundDog) {
-          side = 'L';
-        }
+      if (!foundDog && roomEntered >= 3 && (rangeFrontLow - rangeFrontHigh < minDiffIsDog || rangeFrontLow - rangeFrontHigh > maxDiffIsDog)) {
+        side = 'L';
         right90(2);
         foundDog = true;
       }
@@ -447,10 +448,8 @@ void loop() {
       s2 = getRangeFrontHigh();
       s3 = getRangeFrontHigh();
       float rangeFrontHigh = selectRange(s1, s2, s3);
-      if (roomEntered >= 3 && (rangeFrontLow - rangeFrontHigh < minDiffIsDog || rangeFrontLow - rangeFrontHigh > maxDiffIsDog)) {
-        if (!foundDog) {
-          side = 'R';
-        }
+      if (!foundDog && roomEntered >= 3 && (rangeFrontLow - rangeFrontHigh < minDiffIsDog || rangeFrontLow - rangeFrontHigh > maxDiffIsDog)) {
+        side = 'R';
         left90(2);
         foundDog = true;
       }
@@ -631,3 +630,22 @@ void getOutOffRoom() {
   getOutOffRoom();
   while (true);
   }*/
+void debugMisc(){
+  while(true){
+    for (int i = 0; i < 100; i++) {
+      /*if (detectLine()) {                     // this got 100 / 62.5
+        return;
+      }*/
+      if (detectLine() || (!isFarIR(getRangeFrontLow()) && getRangeFrontLow() < minWalkable)) {     // this 100 / 137
+        Serial.println("555");
+      }
+      forwardFast(1);
+      float s1 = getRangeLeftFront();
+      float s2 = getRangeLeftFront();
+      float s3 = getRangeLeftFront();
+      float rangeLeftFront = selectRange(s1, s2, s3);
+      forwardFast(1);
+    }
+    robotStop(30);
+  }
+}
