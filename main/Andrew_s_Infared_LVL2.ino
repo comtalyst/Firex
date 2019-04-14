@@ -130,7 +130,7 @@ void checkline() {
 
 void turning360 () {
   int x = 0;
-  for (x; x < 320; x++) {
+  for (x; x < steps360; x++) {
     checkfire();
     if (rightIRvalue < 1023 || leftIRvalue < 1023 || midIRvalue < 1023) {
       IfFire = true;
@@ -146,7 +146,7 @@ void turning360 () {
   }
   else {
     //    delay (500);
-    rightSlow(160);
+    rightSlow(steps180);
     //    forwardFast(50);
   }
 }
@@ -193,10 +193,11 @@ void turning360version2() {
     reverseFast(50);                //Moving back, ready for RamboRelease();
     IfFire = false;
     int x = 0;
-    for (x; x < 640; x++) {
+    for (x; x < steps360; x++) {
       checkfire();
       if (rightIRvalue < 1023 || leftIRvalue < 1023 || midIRvalue < 1023) {
         IfFire = true;
+        fireDeg = x;
         break;
       }
       rightStepSlow();

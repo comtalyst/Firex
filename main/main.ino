@@ -59,7 +59,7 @@ const int minLeftRearOKRoom4 = 30;
 const float minTooFar = 25;               // (UNUSED) minimum distance difference between two sensors that would make the robot comes closer to the wall
 const float maxTooClose = 5;              // (UNUSED) minimum distance difference between two sensors that would make the robot moves away from the wall
 
-const int roomEnterSteps = 75;            // steps the bot should take after entering/exiting the room
+const int roomEnterSteps = 85;            // steps the bot should take after entering/exiting the room
 const int roomEndSteps = 70;              // steps the bot should take to back into the circle
 const int roomExitSteps = 20;
 
@@ -124,6 +124,8 @@ int midIRvalue;
 int botIRvalue;
 int rightline;
 int leftline;
+const int steps360 = 305;
+const int steps180 = steps360/2;
 
 boolean IfFire = false;
 
@@ -189,6 +191,7 @@ void loop() {
   //debugCheckSensors();
   //debugCheckIRLine();
   //debugInRoom();
+  //debugDetectDog();
 
   float rangeFrontLow = 0;
   float s1, s2, s3;
@@ -196,7 +199,13 @@ void loop() {
   s2 = getRangeFrontLow();
   s3 = getRangeFrontLow();
   rangeFrontLow = selectRange(s1, s2, s3);
-
+  
+  /*if(turns%2){
+    digitalWrite(REDPin, HIGH);
+  }
+  else{
+    digitalWrite(REDPin, LOW);
+  }*/
   if (!changeYet && roomEntered >= 3 && turnsAfterRoom3 >= 2) {
     changeYet = true;
     side = 'L';
@@ -249,7 +258,7 @@ void loop() {
             stillInRoom = true;
             ///
             side = 'L';
-            if(roomsWithFire == 3 && fireDeg > 320/2){                // on the left!
+            if(roomWithFire == 3 && fireDeg > steps360/2){                // on the left!
               right90(1);
               side = 'R';
               changeToLeftAfterExit = true;
@@ -306,6 +315,7 @@ void loop() {
       // JUST A WALL, LET THE SENSOR FACE THE WALL
       else {
         left90(1);
+        turns++;
       }
     }
 
@@ -317,7 +327,9 @@ void loop() {
       if (roomEntered >= 3) {
         turnsAfterRoom3++;
       }
-      turns++;
+      if(isFarIR(rangeFrontLow) || rangeFrontLow >= minWalkable){
+        turns++;
+      }
     }
 
 
@@ -444,12 +456,15 @@ void loop() {
       }
       else {
         right90(1);
+        turns++;
       }
     }
 
     else if (isFar(rangeLeftFront)) {
       left90Ex(1, (tick - lastRoomTick == 1 || isFar(rangeLeftRear)));
-      turns++;
+      if(isFarIR(rangeFrontLow) || rangeFrontLow >= minWalkable){
+        turns++;
+      }
     }
 
     else if (!isFar(rangeLeftRear) && rangeLeftFront - rangeLeftRear >= minFurther) {
