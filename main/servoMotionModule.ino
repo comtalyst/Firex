@@ -252,9 +252,6 @@ void right90Ex(float lastSense, bool justComeOut) {
   int moveSteps = (int)((tailAdder + firstSensorTailDistance - firstSensorDoorwayDistance*justComeOut) * stepsPerCm + lastSense * stepsPerCm);
 //  if(fireExtinguished){
     for (int i = 0; i < moveSteps; i++) {
-      if (detectLine()) {
-        return;
-      }
       forwardFast(1);
     }
 //  }
@@ -263,7 +260,7 @@ void right90Ex(float lastSense, bool justComeOut) {
 //  }
   right90(1);
   for (int i = 0; i < stepsForwardAfterTurn; i++) {
-    if (detectLine() || (!isFarIR(getRangeFrontLow()) && getRangeFrontLow() < minWalkable)) {
+    if ((!isFarIR(getRangeFrontLow()) && getRangeFrontLow() < minWalkable)) {
       return;
     }
     forwardFast(1);
@@ -273,7 +270,7 @@ void right90Ex(float lastSense, bool justComeOut) {
     float rangeRightFront = selectRange(s1, s2, s3);
     if(!isFar(rangeRightFront)){
       for(int j = 0; j < stepsForwardAfterTurn2; j++){
-        if (detectLine() || (!isFarIR(getRangeFrontLow()) && getRangeFrontLow() < minWalkable)){
+        if ((!isFarIR(getRangeFrontLow()) && getRangeFrontLow() < minWalkable)){
           return;
         }
         forwardFast(1);
@@ -290,9 +287,6 @@ void left90Ex(float lastSense, bool justComeOut) {
   int moveSteps = (int)((tailAdder + firstSensorTailDistance - firstSensorDoorwayDistance*justComeOut) * stepsPerCm + lastSense * stepsPerCm);
 //  if(fireExtinguished){
     for (int i = 0; i < moveSteps; i++) {
-      if (detectLine()) {
-        return;
-      }
       forwardFast(1);
     }
 //  }
@@ -301,7 +295,7 @@ void left90Ex(float lastSense, bool justComeOut) {
 //  }
   left90(1);
   for (int i = 0; i < stepsForwardAfterTurn; i++) {
-    if (detectLine() || (!isFarIR(getRangeFrontLow()) && getRangeFrontLow() < minWalkable)) {
+    if ((!isFarIR(getRangeFrontLow()) && getRangeFrontLow() < minWalkable)) {
       return;
     }
     forwardFast(1);
@@ -311,7 +305,7 @@ void left90Ex(float lastSense, bool justComeOut) {
     float rangeLeftFront = selectRange(s1, s2, s3);
     if(!isFar(rangeLeftFront)){
       for(int j = 0; j < stepsForwardAfterTurn2; j++){
-        if (detectLine() || (!isFarIR(getRangeFrontLow()) && getRangeFrontLow() < minWalkable)){
+        if ((!isFarIR(getRangeFrontLow()) && getRangeFrontLow() < minWalkable)){
           return;
         }
         forwardFast(1);
