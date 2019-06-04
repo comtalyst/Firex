@@ -26,7 +26,14 @@ bool detectLine() {                   // is any of the sensors detect the tape?
   s2 = getRangeLeftRear();
   s3 = getRangeLeftRear();
   rangeLeftRear = selectRange(s1, s2, s3);
-  if (leftValue <= IRLMaxWhite || rightValue <= IRLMaxWhite) {
+  if((turns == 0 || turns == 3 || (roomEntered == 3 && turnsAfterRoom3 == 1) || ((roomWithFire == 1 && turnsAfterExtinguished >= 1) || (roomWithFire > 1 && (turnsAfterExtinguished == 1 || turnsAfterExtinguished >= 4)))) || (!stillInRoom && !goingBack && !fireExtinguished && changeYet && (!isFar(rangeLeftRear) && rangeLeftRear < minLeftRearOKRoom4))){               // special case for room #4 to prevent circle at starting point
+    //banTick = tick + 0;
+    return false;
+  }
+  /*else if (tick < banTick){
+    return false;
+  }*/
+  else if (leftValue <= IRLMaxWhite || rightValue <= IRLMaxWhite) {
     return true;
   }
   return false;

@@ -12,7 +12,7 @@
 ////// PINS //////
 const byte leftIRLineSensorPin = A9;
 const byte rightIRLineSensorPin = A8;
-const byte lowIRSensorPin = A6;           //For both Robin and Andrew's code
+const byte lowIRSensorPin = A7;           //For both Robin and Andrew's code
 const byte highIRSensorPin = A6;          //Missing in pinMode, what is the use of this?
 
 const int valvePin = A2;                  //the versa valve pin
@@ -41,9 +41,6 @@ const int clawServoPin = 24;               // servo pin for LEFT wheel (THIS IS 
 
 const int REDPin = 0;                      //LED Breaker Board
 const int BLUEPin = 2;                     //LED Breaker Board
-const int GREENPin = 1;
-
-const int photoresist= A15;
 //////////////////
 
 /////// Robin's Constant and Variables //////////
@@ -66,9 +63,9 @@ const int roomEnterSteps = 85;            // steps the bot should take after ent
 const int roomEndSteps = 70;              // steps the bot should take to back into the circle
 const int roomExitSteps = 20;
 
-const float stepsPerCm = 100.0 / 323.5;    // 100 steps is 62.5 cm
+const float stepsPerCm = 100.0 / 62.5;    // 100 steps is 62.5 cm
 const float stepsPerCmH = 100 / 137;
-const float doorWidth = 46;
+const float doorWidth = 50;
 const float botWidth = 18;
 //const float preferredDistance = 4;
 
@@ -146,10 +143,9 @@ void setup() {
 
   pinMode(REDPin, OUTPUT);
   pinMode(BLUEPin, OUTPUT);
-  pinMode (GREENPin, OUTPUT);             //TURN ON TO DETECT BABY
-  
-//  pinMode(leftIRLineSensorPin, INPUT);
-//  pinMode(rightIRLineSensorPin, INPUT);
+
+  pinMode(leftIRLineSensorPin, INPUT);
+  pinMode(rightIRLineSensorPin, INPUT);
   pinMode(lowIRSensorPin, INPUT);
   pinMode(highIRSensorPin, INPUT);
 
@@ -185,6 +181,10 @@ void setup() {
     getRangeRightRear();
     delay(10);
   }
+
+  if (isFar(getRangeRightFront())) {      // in case of unfortunate starting directions!
+    right90(1);
+  }
 }
 
 void loop() {
@@ -204,6 +204,16 @@ void loop() {
   s3 = getRangeFrontLow();
   rangeFrontLow = selectRange(s1, s2, s3);
   
+  /*if(turnsAfterRoom3%2){
+    digitalWrite(REDPin, HIGH);
+  }
+  else{
+    digitalWrite(REDPin, LOW);
+  }*/
+  if (!changeYet && roomEntered >= 3 && turnsAfterRoom3 >= 2) {
+    changeYet = true;
+    side = 'L';
+  }
   if (side == 'R') {
     float rangeRightFront = 0;
     float rangeRightRear = 0;
@@ -221,14 +231,109 @@ void loop() {
       // also needed to hzPosBad(rangeRightFront) == 0, but unused
       lastSense = rangeRightFront;
     }
-    if (!isFarIR(rangeFrontLow) && rangeFrontLow < minWalkable) {
-      left90(1);
+
+    // if bot detect the opened door
+    if (detectLine()) {
+      digitalWrite(LEDPin, HIGH);
+      alignBot();
+      if (!stillInRoom) {                                             // if we're not exiting the room (after fire has been put out)
+        if (fireExtinguished) {                                       // are we going back?
+          if (roomsAfterFire <= 0) {                                  // we reached the start circle
+            forwardFast(roomEndSteps);
+            while (true) robotStop(100);                              // done!
+          }
+          else {                                                      // no we're not, no need to enter the room and and continue reversion
+            roomsAfterFire--;
+            right90(2);
+          }
+        }
+        else {                                                        // We're going in the room
+          forwardFast(roomEnterSteps);
+          // the bot is in the room and facing forward at this point
+          //robotStop(20);
+          detectionStory();                                           // Andrew's Code
+          if (fireExtinguished) {                                     // if we just found and extinguished the fire
+            roomWithFire = roomEntered+1;
+            // getOutOffRoom();
+            // dumb room outing
+//            Serial.println("Yes, Chris, it is me!");
+
+            right90(1);
+            stillInRoom = true;
+            ///
+            side = 'L';
+            if(roomWithFire == 3 && fireDeg > steps180/2 + steps180/4){                // on the left!
+              right90(1);
+              side = 'R';
+              changeToLeftAfterExit = true;
+            }
+            foundDog = true;                                          // prevent any changes --> this proved to be work in all rooms (standard return in 1,2,3 and greedy short return in 4)
+            changeYet = true;
+            roomsAfterFire = roomEntered;
+            if (roomsAfterFire == 3) {
+              roomsAfterFire = 0;
+            }
+          }
+          else {                                                      // no fire found --> exit the room
+            // the bot has to face the exit at this point
+            stillInRoom = true;
+            while (!detectLine()) {                                   // run to the door, should be around roomEnterSteps times
+              forwardFast(1);
+            }
+            stillInRoom = false;
+            alignBot();
+            forwardFast(roomExitSteps);
+            roomEntered++;
+          }
+        }
+        lastSense = doorWidth - (lastSense + botWidth);
+        digitalWrite(LEDPin, LOW);
+        lastRoomTick = tick;
+      }
+      else {
+        stillInRoom = false;
+        digitalWrite(LEDPin, LOW);
+        roomEntered++;
+        forwardFast(20);
+        turnsAfterExit = 0;
+        if(changeToLeftAfterExit){
+          side = 'L';
+        }
+      }
+    }
+
+    // IF DETECTS THE WALL
+    else if (!isFarIR(rangeFrontLow) && rangeFrontLow < minWalkable) {
+      // IS THIS THE DOG?
+      s1 = getRangeFrontHigh();
+      s2 = getRangeFrontHigh();
+      s3 = getRangeFrontHigh();
+      float rangeFrontHigh = selectRange(s1, s2, s3);
+      if (!foundDog && roomEntered >= 3 && (rangeFrontLow - rangeFrontHigh < minDiffIsDog || rangeFrontLow - rangeFrontHigh > maxDiffIsDog)) {
+        side = 'L';
+        right90(2);
+        foundDog = true;
+      }
+      // JUST A WALL, LET THE SENSOR FACE THE WALL
+      else {
+        left90(1);
+        turns++;
+        turnsAfterExtinguished++;
+      }
     }
 
     // IF SIDE-FRONT SENSOR IS FAR
     else if (isFar(rangeRightFront)) {
       // SHARP 90 DEG TURN
-      right90Ex(1,0);      // includes stick
+      
+      right90Ex(1, (tick - lastRoomTick == 1 || isFar(rangeRightRear)));      // includes stick
+      if (roomEntered >= 3) {
+        turnsAfterRoom3++;
+      }
+      if(isFarIR(rangeFrontLow) || rangeFrontLow >= minWalkable){
+        turns++;
+        turnsAfterExtinguished++;
+      }
     }
 
 
@@ -245,9 +350,138 @@ void loop() {
       leftSlightly(1);
       forwardSlightly(1);
     }
+
+    /*// IF TOO FAR OR TOO CLOSE
+      else if (hzPosBad(rangeRightFront)) {
+      if (hzPosBad(rangeRightFront) == 1) {
+        right90(1);
+        forwardFast((int)(stepsPerCm * (rangeRightFront - (minTooFar - maxTooClose) / 2.0)));
+        left90(1);
+      }
+      else {
+        left90(1);
+        forwardFast((int)(stepsPerCm * ((minTooFar - maxTooClose) / 2.0 - rangeRightFront)));
+        right90(1);
+      }
+      }*/
+
     // IT CAN NOW MOVES FORWARD
     else {
       // FORWARD SLIGHTLY
+      forwardSlightly(1);
+    }
+  }
+  else if (side == 'L') {
+    float rangeLeftFront = 0;
+    float rangeLeftRear = 0;
+    s1 = getRangeLeftFront();
+    s2 = getRangeLeftFront();
+    s3 = getRangeLeftFront();
+    rangeLeftFront = selectRange(s1, s2, s3);
+    s1 = getRangeLeftRear();
+    s2 = getRangeLeftRear();
+    s3 = getRangeLeftRear();
+    rangeLeftRear = selectRange(s1, s2, s3);
+
+    if (!isFar(rangeLeftFront)) {
+      lastSense = rangeLeftFront;
+    }
+
+    if (detectLine()) {
+      digitalWrite(LEDPin, HIGH);
+      alignBot();
+      if (!stillInRoom) {                                             // if we're not exiting the room (after fire has been put out)
+        if (fireExtinguished) {                                       // are we going back?
+          if (roomsAfterFire <= 0) {                                  // we reached the start circle
+            forwardFast(roomEndSteps);
+            while (true) robotStop(100);                              // done!
+          }
+          else {                                                      // no we're not, no need to enter the room and and continue reversion
+            roomsAfterFire--;
+            left90(2);
+          }
+        }
+        else {                                                        // We're going in the room
+          forwardFast(roomEnterSteps);
+          // the bot is in the room and facing forward at this point
+          //robotStop(20);
+          detectionStory();                          // Andrew's
+          if (fireExtinguished) {                                     // if we just found and extinguished the fire
+            roomWithFire = roomEntered+1;
+            // getOutOffRoom();
+            // dumb room outing
+            left90(1);
+            stillInRoom = true;
+            ///
+            side = 'R';
+            foundDog = true;
+            changeYet = true;                                         // actually oversufficient, but for the code niceness
+            roomsAfterFire = roomEntered;                             // these too
+            if (roomsAfterFire == 3) {
+              roomsAfterFire = 0;
+            }
+          }
+          else {                                                      // no fire found --> exit the room
+            // the bot has to face the exit at this point
+            stillInRoom = true;
+            while (!detectLine()) {                                   // run to the door, should be around roomEnterSteps times
+              forwardFast(1);
+            }
+            stillInRoom = false;
+            alignBot();
+            roomEntered++;
+            forwardFast(roomExitSteps);
+          }
+        }
+        lastSense = doorWidth - (lastSense + botWidth);
+        digitalWrite(LEDPin, LOW);
+        lastRoomTick = tick;
+      }
+      else {
+        stillInRoom = false;
+        digitalWrite(LEDPin, LOW);
+        roomEntered++;
+        forwardFast(20);
+        turnsAfterExit = 0;
+      }
+    }
+
+    else if (!isFarIR(rangeFrontLow) && rangeFrontLow < minWalkable) {
+      s1 = getRangeFrontHigh();
+      s2 = getRangeFrontHigh();
+      s3 = getRangeFrontHigh();
+      float rangeFrontHigh = selectRange(s1, s2, s3);
+      if (!foundDog && roomEntered >= 3 && (rangeFrontLow - rangeFrontHigh < minDiffIsDog || rangeFrontLow - rangeFrontHigh > maxDiffIsDog)) {
+        side = 'R';
+        left90(2);
+        foundDog = true;
+      }
+      else {
+        right90(1);
+        turns++;
+        turnsAfterExtinguished++;
+      }
+    }
+
+    else if (isFar(rangeLeftFront)) {
+      left90Ex(1, (tick - lastRoomTick == 1 || isFar(rangeLeftRear)));
+      if(isFarIR(rangeFrontLow) || rangeFrontLow >= minWalkable){
+        turns++;
+        turnsAfterExtinguished++;
+      }
+    }
+
+    else if (!isFar(rangeLeftRear) && rangeLeftFront - rangeLeftRear >= minFurther) {
+      leftSlightly(1);
+      forwardSlightly(3 - (rangeLeftFront - rangeLeftRear >= minVeryFurther) * 2);
+    }
+
+    else if (rangeLeftRear - rangeLeftFront >= minFurther) {
+      rightSlightly(1);
+      forwardSlightly(1);
+    }
+
+    else {
       forwardSlightly(1);
     }
   }
